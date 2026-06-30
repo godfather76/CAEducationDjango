@@ -1,1 +1,10 @@
-/CAEducationDjango/settings.py
+.venv/
+.idea/
+__pycache__/
+*.py[cod]
+*$py.class
+.vscode/
+.DS_Store
+.AppleDouble
+.LSOverride
+.env

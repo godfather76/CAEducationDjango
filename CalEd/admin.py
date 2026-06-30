@@ -7,5 +7,4 @@ admin.site.register(County)
 admin.site.register(SchoolDistrict)
 admin.site.register(ELAMathTestScore)
 admin.site.register(ScienceTestScore)
-admin.site.register(StudentGroup)
 

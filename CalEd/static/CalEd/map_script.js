@@ -1,7 +1,14 @@
 document.addEventListener("DOMContentLoaded", function() {
     console.log("DOM fully loaded. Initializing map elements...");
+    var caBounds = L.latLngBounds(
+    L.latLng(32.5, -124.5), // Southwest corner
+    L.latLng(42.0, -114.1)  // Northeast corner
+    );
     // 1. Initialize your map canvas (centered on California)
-    var map = L.map('map').setView([36.7783, -119.4179], 6);
+    var map = L.map('map', {
+        maxBounds: caBounds,
+        maxBoundsViscosity: 1.0 // Prevents the user from dragging outside the bounds at all
+    }).setView([36.7783, -119.4179], 6);
 
     // 2. Load geographic underlying base tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -16,7 +23,6 @@ document.addEventListener("DOMContentLoaded", function() {
     var payDropdown = document.getElementById('pay-dropdown');
     var testDropdown = document.getElementById('test-dropdown')
     var studentGroupDropdown = document.getElementById('studentgroup-dropdown')
-    var gradeDropdown = document.getElementById('grade-dropdown')
     var scoreDropdown = document.getElementById('score-dropdown')
 
     // -----------------------------------------------------------------
@@ -40,22 +46,26 @@ document.addEventListener("DOMContentLoaded", function() {
     function getScoreColorPercent(score) {
         if (score === null || score === undefined) return '#e0e0e0'; // Make missing data gray
 
-        return score > 90 ? '#0af613' : // Dark Green (Excellent)
-           score > 80 ? '#c2f606' : // Light Green
-           score > 70 ? '#fbc103' : // Yellow-Green
-           score > 60 ? '#ff9100f9' : // Orange/Yellow
-           score > 50 ? '#fd5a03' : // Dark Orange
-                        '#fd0420cc'; // Red (Needs Improvement)
+        return score > 90 ? '#02e302' : // Pure Vibrant Green
+       score > 80 ? '#60e302' : // Light Lime Green
+       score > 70 ? '#f2f202' : // Pure Vibrant Yellow
+       score > 60 ? '#f2ca02' : // Golden Yellow
+       score > 50 ? '#e39b02' : // Amber / Yellow-Orange
+       score > 40 ? '#e37a02' : // Vibrant Orange
+       score > 30 ? '#e35802' : // Deep Orange
+       score > 20 ? '#e33602' : // Red-Orange
+       score > 10 ? '#e31802' : // Bright Red
+                    '#e30202';  // Deep Crimson Red
+
+        // Scale that makes anything less than 50% red
+        // return score > 90 ? '#0af613' : // Dark Green (Excellent)
+        //    score > 80 ? '#c2f606' : // Light Green
+        //    score > 70 ? '#fbc103' : // Yellow-Green
+        //    score > 60 ? '#ff9100f9' : // Orange/Yellow
+        //    score > 50 ? '#fd5a03' : // Dark Orange
+        //                 '#fd0420cc'; // Red (Needs Improvement)
     }
 
-    function getScoreColorMeanScale(score) {
-        return score > 90 ? '#2fa570' : // Dark Green (Excellent)
-           score > 80 ? '#41ab5d' : // Light Green
-           score > 70 ? '#addd8e' : // Yellow-Green
-           score > 60 ? '#fec44f' : // Orange/Yellow
-           score > 50 ? '#fe9929' : // Dark Orange
-                        '#d95f02'; // Red/Orange (Needs Improvement)
-    }
 
     // 3. Consolidated operational data loading container block
     function loadDistrictData() {
@@ -64,7 +74,6 @@ document.addEventListener("DOMContentLoaded", function() {
         var staffType = staffDropdown ? staffDropdown.value : 'TA';
         var test = testDropdown ? testDropdown.value : 'SB - English Language Arts/Literacy'
         var student_group = studentGroupDropdown ? studentGroupDropdown.value : 'All Students'
-        var grade = gradeDropdown ? gradeDropdown.value : '11'
         var score_type = scoreDropdown ? scoreDropdown.value : 'Percentage Met and Above'
 
         // -----------------------------------------------------------------
@@ -74,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Inject active user choices directly into URL string query parameters
         var baseUrl = (boundaryType === 'county') ? '/api/counties/' : '/api/districts/';
-        var apiUrl = `${baseUrl}?staff_type=${staffType}&year=${year}&test=${test}&student_group=${student_group}&grade=${grade}&score=${score_type}`;
+        var apiUrl = `${baseUrl}?staff_type=${staffType}&year=${year}&test=${test}&student_group=${student_group}&score=${score_type}`;
 
         console.log("Fetching data from URL:", apiUrl);
 
@@ -99,8 +108,8 @@ document.addEventListener("DOMContentLoaded", function() {
                             var score = feature.properties.percentage_met_above;
                         } else if (score_type === 'Percentage Nearly Met') {
                             var score = feature.properties.percentage_nearly_met;
-                        } else if (score_type === 'Mean Scale Score') {
-                            var score = feature.properties.mean_scale_score;
+                        } else if (score_type === 'Percentage Nearly Met and Above') {
+                            var score = feature.properties.percentage_nearly_met_above;
                         }
 
 
@@ -113,10 +122,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                 fillOpacity: 0.4
                             }
                         }
-                        var activeColorFunction = (score_type === 'Percentage Met and Above') ? getScoreColorPercent : getScoreColorMeanScale;
+
                         return {
                             color: "#fffff", // Subtle aesthetic variance for clarity
-                            fillColor: activeColorFunction(score),
+                            fillColor: getScoreColorPercent(score),
                             weight: 1.5,
                             fillOpacity: 0.8
                         };
@@ -134,15 +143,15 @@ document.addEventListener("DOMContentLoaded", function() {
                                 });
 
                                 var props = feature.properties;
-                                var name = props.district_name || props.county_name || "Unknown Regional entity";
+                                var name = props.district || props.county || "Unknown Regional entity";
                                 var labelSuffix = (boundaryType === 'county') ? " County" : " School District";
                                 var tooltipContent = "<strong>" + name + labelSuffix + "</strong><br>";
                                 if (score_type === 'Percentage Met and Above') {
                                     var score = feature.properties.percentage_met_above;
                                 } else if (score_type === 'Percentage Nearly Met') {
                                     var score = feature.properties.percentage_nearly_met;
-                                } else if (score_type === 'Mean Scale Score') {
-                                    var score = feature.properties.mean_scale_score;
+                                } else if (score_type === 'Percentage Nearly Met and Above') {
+                                    var score = feature.properties.percentage_nearly_met_above;
                                 }
 
                                 // Check active UI choice selection variable to adjust tooltip markup layout string
@@ -227,7 +236,6 @@ document.addEventListener("DOMContentLoaded", function() {
     if (payDropdown) payDropdown.addEventListener('change', loadDistrictData)
     if (testDropdown) testDropdown.addEventListener('change', loadDistrictData)
     if (studentGroupDropdown) studentGroupDropdown.addEventListener('change', loadDistrictData)
-    if (gradeDropdown) gradeDropdown.addEventListener('change', loadDistrictData)
     if (scoreDropdown) scoreDropdown.addEventListener('change', loadDistrictData)
 
 
@@ -235,7 +243,30 @@ document.addEventListener("DOMContentLoaded", function() {
     // NOTATION: ATTACH CHANGE LISTENERS TO PROCESS FUTURE RE-FETCH DROPDOWNS HERE
     // if (customDropdown) customDropdown.addEventListener('change', loadDistrictData);
     // -----------------------------------------------------------------
+    var legend = L.control({ position: 'topright' });
 
+    legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend');
+        // Define the lower boundaries of your score increments
+        var grades = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90];
+
+        div.innerHTML += '<strong>Score Scale</strong><br>';
+
+        // Loop through intervals and generate a label with a colored square for each
+        for (var i = 0; i < grades.length; i++) {
+            var from = grades[i];
+            var to = grades[i + 1];
+
+            // Passing (from + 1) ensures it hits the correct conditional bracket in your function
+            div.innerHTML +=
+                '<i style="background:' + getScoreColorPercent(from + 1) + '"></i> ' +
+                from + (to ? '&ndash;' + to + '%' : '+%') + '<br>';
+        }
+
+        return div;
+    };
+
+    legend.addTo(map);
     // Boot initialization runtime cycle on load execution footprint
     loadDistrictData();
 });

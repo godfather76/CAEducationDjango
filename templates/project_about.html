@@ -1,0 +1,109 @@
+{%  extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h1>About the Project</h1>
+        Note: Links below can also be found in <a href="{% url 'notebooks' %}">Jupyter Notebooks</a> and
+        <a href="{% url 'links' %}">Data Links</a>
+        <br><br>
+    <p>
+        I have been, and will continue to be, a lifelong learner. The ability to garner actionable insights from and
+        make predictions based on data is, for me, the next step in that process.
+        When I started thinking about what kind of data I wanted to get into, as a parent, former substitute teacher, and
+        sometimes moonlight Adjunct professor, public education in California is a topic near and dear to my heart. And,
+        sadly, it's not going well. I knew that this story needed to be told, and I knew the data was all public record.
+        <br><br>
+        There is a great group of people doing great work over at
+        <a href="https://transparentcalifornia.com/agencies/salaries/school-districts/" target="_blank">
+            TransparentCalifornia.com</a>, where they complete public
+        records requests and publish the data in order to promote transparency. This data is easy to search through in
+        their site if you want to know things like what a given public school teacher makes, who makes the most money in
+        a school or school district, etc.
+        <br><br>
+        Teachers generally are making good money here in California, but that in itself isn't a bad thing, and it's not
+        the whole story. I wanted to know, are those dollars being put to good use? Are the students being taken care
+        of? That is a question that is best told, in my opinion, through a map. I decided to make a map of counties or
+        districts and color the map based on the test scores, with a tooltip showing aggregate information about the
+        average, low, and high salary in a given area.
+        <br><br>
+        The TransparentCalifornia.com website allows downloads, but there is a limit of 10 per day, and there are
+        thousands of files. So, I wrote <a href="{% url 'WebScraperApp' %}" target="_blank">my first web scraper</a>. I
+        used it to scrape the transparentCalifornia.com website for teacher salary data. If a given school had more than
+        50 pages of data, it would ask you to download. However, it would allow you to sort by highest and lowest, so I
+        actually only needed to download schools that were more than 100 pages. This meant I only needed to download
+        something like 150 files, which I was able to do in 15 days.
+        <br><br>
+        The scraper was writing to a series of SQLite databases. When it would get close to a million rows, I would
+        change the name to db_name_part_#. At the end I had 18 databases and needed to combine the databases into one
+        big database and remove duplicates. That was done in
+        <a href="{% url 'TransparentCADataCombiner' %}" target="_blank">this Jupyter notebook</a>. For sanity and size
+        (the one DB to rule them all was 14 million rows), I <a href="{% url 'SepIntoYears' %}" target="_blank">
+        separated the one sqlite database into one database for each year</a> represented in the data.
+        <br><br>
+        With that, I had clean, year-separated salary data to work with. Now I needed test scores, which are publicly
+        available for download at <a href="https://caaspp-elpac.ets.org/caaspp/" target="_blank">CAASPP</a> (California
+        Assessment of Student Performance and Progress).
+        <br><br>
+        CAASPP scores come in 4 main files: <br>
+        - A data file with actual test scores for different test, entities (schools and school districts), and student
+        groups. I am using two of these, one for Science and one that had both Math and English test scores.<br>
+        - Tests.csv had the names of the tests, which correspond to Test ID in the data files<br>
+        - StudentGroups.csv had the names of the student groups (groups like "Socioeconomically Disadvantaged," "Not
+        Socioeconomically Disadvantaged," "Reported Disabilites," "No Reported Disabilities," as well as various
+        demographic groups. There are 60 student groups in all<br>
+        - An entities file with the names of Counties, Districts, and Schools. These correspond to County Code, District
+        Code, and School Code in the data file.
+        <br><br>
+        I realized the best way to display this information, since schools are representative of their local areas,
+        would be a map. I knew there was a lot of complexity to this data and didn't feel screenshots of a tableau file
+        or some such would really do it justice, so I decided to try my hand at creating it as a website. I decided to
+        use Django and set about learning the basics of Django web design. I particularly got a lot of information from
+        the first twenty minutes of this <a href="https://www.youtube.com/watch?v=t10QcFx7d5k" target="_blank">Django
+        CRM Tutorial by Codemy.com</a> and parts of this <a href="https://www.youtube.com/watch?v=E2bhoCOMlsA" target="_blank">
+        tutorial where BugBytes implements LeafletJS</a>.
+        <br><br>
+        I got three different sets of geographic data:<br>
+        - <a href="https://data.ca.gov/dataset/ca-geographic-boundaries"
+           target="_blank">California County Geographic Boundaries Shape File</a><br>
+        - <a href="https://nces.ed.gov/programs/edge/Geographic/DistrictBoundaries"
+           target="_blank">National Center for Education Statistics School District Geographic Boundaries Shape File</a><br>
+        - <a href="https://www.cde.ca.gov/ds/si/ds/pubschls.asp"
+           target="_blank">State to Federal Shape Crosswalk</a>
+        <br><br>
+        I have set up PostgreSQL database before and really liked it, and the Django CRM tutorial I was watching for
+        learning Django setup was setting up exactly that- a Django site with a PostgreSQL database. So I created my
+        models in Django, made the migrations, and migrated them, which gave me a PostgreSQL framework to put by SQLite
+        and CSV data into.
+        <br><br>
+        I had data that matched up but had differences in County/School District naming conventions and my test scores
+        had different unique IDs from the geographic data. I used the aforementioned crosswalk document to bridge the
+        gap. This was a more sure approach. The main drawback of this approach is that data was self reported to the
+        NCES and something like 39 schools didn't report in for the 2017-18 data. This was still better than the previous
+        method of using name instead of a unique ID.
+        <br><br>
+        In a Jupyter notebook, I <a href="{% url 'ToPostgreSQL' %}" target="_blank">cleaned the data and uploaded it to
+        PostgreSQL</a>. In the same Notebook, I read in shape data, sorted it to California, trimmed it, and merged it
+        with the crosswalk data. Test score data was also merged with the Crosswalk names so the names matched between
+        shape data and test score data.
+        <br><br>
+        The last data task was to <a href="{% url 'SalaryAggregate' %}"
+                                     target="_blank">clean and aggregate the salary data.</a> I created 10 different
+        databases for salary data:
+        <br>
+        - County, just teachers<br>
+        - District, just teachers<br>
+        - County, just administrators<br>
+        - District, just administrators<br>
+        - County, just support staff<br>
+        - District, just support staff<br>
+        - County, teachers and administrators<br>
+        - District, teachers and administrators<br>
+        - County, teachers, administrators, and support staff<br>
+        - District, teachers, administrators, and support staff<br>
+        <br>
+        This allowed me to easily switch between the various configurations in the Django backend and show salary data
+        that matches the selections in the frontend.
+        <br><br>
+        The rest was just me, the bootstrap website, the leaflet website, and google building the site out and getting
+        all the data working together.
+{% endblock %}

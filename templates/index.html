@@ -2,8 +2,9 @@
 {% load static %}
 
 {% block content %}
-    <div class="map-controls-container_top" style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;
-    flex-wrap: wrap; background-color: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #dee2e6;">
+    <h1>Education in California</h1>
+    <div class="map-controls-container_top border-0" data-bs-theme="dark" style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;
+    flex-wrap: wrap; padding: 15px; border-radius: 6px;">
 
         <div class="control-group">
             <label for="year-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">Year:</label>
@@ -26,8 +27,8 @@
         </div>
     </div>
 
-    <div class="map-controls-container_mid" style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;
-    flex-wrap: wrap; background-color: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #dee2e6;">
+    <div class="map-controls-container_mid border-0" data-bs-theme="dark" style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;
+    flex-wrap: wrap; padding: 15px; border-radius: 6px;">
         <div class="control-group">
             <label for="test-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">Test:</label>
             <select id="test-dropdown" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 100px;">
@@ -51,19 +52,6 @@
         </div>
 
         <div class="control-group">
-            <label for="grade-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">Grade:</label>
-            <select id="grade-dropdown" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 100px;">
-
-                {% for grade in available_grades %}
-                    <option value="{{ grade }}" {% if grade == 11 %}selected{% endif %}>
-                        {{ grade }}
-                    </option>
-                {% endfor %}
-
-            </select>
-        </div>
-
-        <div class="control-group">
             <label for="score-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">Score Metric:</label>
             <select id="score-dropdown" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 100px;">
                 {% for score in available_scores %}
@@ -76,8 +64,8 @@
 
     </div>
 
-    <div class="map-controls-container_bottom" style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;
-    flex-wrap: wrap; background-color: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #dee2e6;">
+    <div class="map-controls-container_bottom border-0" data-bs-theme="dark" style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;
+    flex-wrap: wrap; padding: 15px; border-radius: 6px;">
 
         <div class="control-group">
             <label for="staff-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">Staff Category:</label>
@@ -103,8 +91,7 @@
         </div>
     </div>
 
-
-    <div id="map"  style="height: 800px; width: 1200px; border: 1px solid #ccc; border-radius: 4px;"></div>
+    <div id="map"  style="height: 600px; width: 500px; border: 1px solid #ccc; border-radius: 4px;"></div>
     <script src="{% static 'CalEd/map_script.js' %}"></script>
 
 {% endblock %}

@@ -1,4 +1,5 @@
-from django.db.models import Count
+from django.db.models import Count, Avg
+from django.db.models.functions import Round
 from django.views import generic
 from django.contrib.gis.geos import fromstr
 from django.contrib.gis.db.models.functions import Distance, Transform
@@ -42,34 +43,45 @@ def index(request):
 
     available_tests = elamath_tests.union(science_tests)
 
-    elamath_grades = (
-        ELAMathTestScore.objects
-        .values_list('grade', flat=True)
-        .distinct()
-        .order_by('grade')
-    )
-
-    science_grades = (
-        ScienceTestScore.objects
-        .values_list('grade', flat=True)
-        .distinct()
-        .order_by('grade')
-    )
-
-    available_grades = elamath_grades
-
-    available_scores = ['Mean Scale Score',
-                        'Percentage Met and Above',
-                        'Percentage Nearly Met']
+    available_scores = ['Percentage Met and Above',
+                        'Percentage Nearly Met',
+                        'Percentage Nearly Met and Above']
 
     context = {
         'available_years': available_years,
         'available_student_groups': available_student_groups,
         'available_tests': available_tests,
-        'available_grades': available_grades,
         'available_scores': available_scores,
     }
     return render(request, 'index.html', context)
+
+
+def about(request):
+    return render(request, 'about.html')
+
+def project_about(request):
+    return render(request, 'project_about.html')
+
+def notebooks(request):
+    return render(request, 'notebooks.html')
+
+def WebScraperApp(request):
+    return render(request, 'notebooks/WebScraperApp.html')
+
+def TransparentCADataCombiner(request):
+    return render(request, 'notebooks/TransparentCADataCombiner.html')
+
+def SepIntoYears(request):
+    return render(request, 'notebooks/SepIntoYears.html')
+
+def ToPostgreSQL(request):
+    return render(request, 'notebooks/ToPostgreSQL.html')
+
+def SalaryAggregate(request):
+    return render(request, 'notebooks/SalaryAggregate.html')
+
+def links(request):
+    return render(request, 'links.html')
 
 
 def county_geo_json(request):
@@ -77,7 +89,6 @@ def county_geo_json(request):
     year = request.GET.get('year', '2022')
     test = request.GET.get('test', 'SB - English Language Arts/Literacy')
     student_group = request.GET.get('student_group', 'All Students')
-    grade = request.GET.get('grade', '11')
 
     # Get queryset
     counties = County.objects.all()
@@ -105,24 +116,39 @@ def county_geo_json(request):
     selected_score_model = score_model_mapping.get(test, 'SB - English Language Arts/Literacy')
     score_records = selected_score_model.objects.filter(
         test_name=test,
-        district_code=0,
         school_code=0,
         student_group_name=student_group,
-        grade=grade,
-         year=year
-    ).exclude(county_code=0)
+        grade=13,
+        year=year
+    ).exclude(
+        county_code=0
+    ).values(
+        'county'
+    ).annotate(
+        percentage_met_above=Round(Avg('percentage_met_above'), 2),
+        percentage_nearly_met=Round(Avg('percentage_nearly_met'), 2),
+    ).order_by('county')
+
     score_stats_lookup = {
-        record.county_name: record for record in score_records
+        record['county']: record for record in score_records
     }
 
     features = []
     for county in counties:
         if not county.geometry:
             continue
+
         stats = stats_lookup.get(county.county)
         score_stats = score_stats_lookup.get(county.county)
+
+        if score_stats:
+            try:
+                percentage_nearly_met_above = score_stats['percentage_nearly_met'] + score_stats['percentage_met_above']
+            except TypeError:
+                pass
+
         stat_dict = {
-            'county_name': stats.county if stats else 'N/A',
+            'county': stats.county if stats else 'N/A',
             'regular_pay_min': stats.regular_pay_min if stats else 'N/A',
             'regular_pay_max': stats.regular_pay_max if stats else 'N/A',
             'regular_pay_mean': stats.regular_pay_mean if stats else 'N/A',
@@ -147,15 +173,10 @@ def county_geo_json(request):
             'total_pay_and_benefits_max': stats.total_pay_and_benefits_max if stats else 'N/A',
             'total_pay_and_benefits_mean': stats.total_pay_and_benefits_mean if stats else 'N/A',
             'total_pay_and_benefits_sum': stats.total_pay_and_benefits_sum if stats else 'N/A',
-            'total_enrollment': score_stats.total_enrollment if score_stats else 'N/A',
-            'total_tested': score_stats.total_tested if score_stats else 'N/A',
-            'total_tested_with_scores': score_stats.total_tested_with_scores if score_stats else 'N/A',
-            'mean_scale_score': score_stats.mean_scale_score if score_stats else 'N/A',
-            'percentage_met_above': score_stats.percentage_met_above if score_stats else 'N/A',
-            'percentage_nearly_met': score_stats.percentage_nearly_met if score_stats else 'N/A',
+            'percentage_met_above': score_stats['percentage_met_above'] if score_stats else 'N/A',
+            'percentage_nearly_met': score_stats['percentage_nearly_met'] if score_stats else 'N/A',
+            'percentage_nearly_met_above': percentage_nearly_met_above if score_stats else 'N/A',
         }
-
-
 
         features.append({
             'type': 'Feature',
@@ -171,9 +192,8 @@ def district_geo_json(request):
     year = request.GET.get('year', '2022')
     test = request.GET.get('test', 'SB - English Language Arts/Literacy')
     student_group = request.GET.get('student_group', 'All Students')
-    grade = request.GET.get('grade', '11')
+    districts = SchoolDistrict.objects.filter(year=year)
 
-    districts = SchoolDistrict.objects.all()
     model_mapping = {
         'T': AggByDistrictT,
         'A': AggByDistrictA,
@@ -199,11 +219,11 @@ def district_geo_json(request):
         test_name=test,
         school_code=0,
         student_group_name=student_group,
-        grade=grade,
+        grade=13,
         year=year
     ).exclude(district_code=0)
     score_stats_lookup = {
-        record.district_name: record for record in score_records
+        record.district: record for record in score_records
     }
 
     features = []
@@ -212,10 +232,22 @@ def district_geo_json(request):
         if not district.geometry:
             continue
         # Get the data for this district
-        stats = stats_lookup.get(district.district_name)
-        score_stats = score_stats_lookup.get(district.district_name)
+        stats = stats_lookup.get(district.district)
+        # if not stats:
+        #     # district = district.district.replace ('-', ' ')
+        #     stats = stats_lookup.get(district)
+
+        score_stats = score_stats_lookup.get(district.district)
+
+        if score_stats:
+            try:
+                percentage_nearly_met_above = score_stats.percentage_nearly_met + score_stats.percentage_met_above
+            except TypeError:
+                percentage_nearly_met_above = 'N/A'
+
         stat_dict = {
-            'county_name': stats.county if stats else 'N/A',
+            'county': stats.county if stats else 'N/A',
+            'district': stats.district if stats else 'N/A',
             'regular_pay_min': stats.regular_pay_min if stats else 'N/A',
             'regular_pay_max': stats.regular_pay_max if stats else 'N/A',
             'regular_pay_mean': stats.regular_pay_mean if stats else 'N/A',
@@ -240,11 +272,10 @@ def district_geo_json(request):
             'total_pay_and_benefits_max': stats.total_pay_and_benefits_max if stats else 'N/A',
             'total_pay_and_benefits_mean': stats.total_pay_and_benefits_mean if stats else 'N/A',
             'total_pay_and_benefits_sum': stats.total_pay_and_benefits_sum if stats else 'N/A',
-            'mean_scale_score': score_stats.mean_scale_score if score_stats else 'N/A',
             'percentage_met_above': score_stats.percentage_met_above if score_stats else 'N/A',
             'percentage_nearly_met': score_stats.percentage_nearly_met if score_stats else 'N/A',
+            'percentage_nearly_met_above': percentage_nearly_met_above if score_stats else 'N/A',
         }
-
         features.append({
             'type': 'Feature',
             'geometry': json.loads(district.geometry.geojson),

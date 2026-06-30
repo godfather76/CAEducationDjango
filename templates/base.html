@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Education in California</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin="" />
@@ -12,9 +14,75 @@
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
 </head>
+<style>
+    /* Styling for the Leaflet Legend Map Key */
+    .legend {
+        padding: 10px 12px;
+        font: 14px/18px Arial, Helvetica, sans-serif;
+        background: white;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        color: #333;
+    }
+
+    .legend strong {
+        display: inline-block;
+        margin-bottom: 5px;
+    }
+
+    /* Create the color squares */
+    .legend i {
+        width: 18px;
+        height: 18px;
+        float: left;
+        margin-right: 8px;
+        opacity: 0.8;
+        border: 1px solid #ccc;
+    }
+
+</style>
 <body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <div class="container mt-4">
-        <h1>Education in California</h1>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+          <div class="container-fluid">
+            <div class="collapse navbar-collapse" id="navbarNav">
+              <ul class="navbar-nav">
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active fw-bold{% endif %}"
+                     {% if request.resolver_match.url_name == 'index' %}aria-current="page"{% endif %}
+                     href="{% url 'index' %}">Map</a>
+                </li>
+
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active fw-bold{% endif %}"
+                     {% if request.resolver_match.url_name == 'about' %}aria-current="page"{% endif %}
+                     href="{% url 'about' %}">About<br>Isaac</a>
+                </li>
+
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'project_about' %}active fw-bold{% endif %}"
+                     {% if request.resolver_match.url_name == 'project_about' %}aria-current="page"{% endif %}
+                     href="{% url 'project_about' %}">About<br>Project</a>
+                </li>
+
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'notebooks' %}active fw-bold{% endif %}"
+                     {% if request.resolver_match.url_name == 'notebooks' %}aria-current="page"{% endif %}
+                     href="{% url 'notebooks' %}">Jupyter<br>Notebooks</a>
+                </li>
+
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'links' %}active fw-bold{% endif %}"
+                     {% if request.resolver_match.url_name == 'links' %}aria-current="page"{% endif %}
+                     href="{% url 'links' %}">Data<br>Links</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
         {% block content %}
         {% endblock %}
     </div>
