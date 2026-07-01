@@ -72,6 +72,8 @@ WSGI_APPLICATION = 'CAEducationDjango.wsgi.application'
 
 
 DATABASES = {'default': env.db()}
+# Explicitly override the engine to use the PostGIS spatial backend
+DATABASES['default']['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
