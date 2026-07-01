@@ -107,6 +107,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         fetch(apiUrl)
             .then(response => {
+                clearTimeout(timeoutId); // Success! Stop the stopwatch.
                 if (!response.ok) throw new Error('Network response not ok');
                 return response.json();
             })
@@ -243,14 +244,22 @@ document.addEventListener("DOMContentLoaded", function() {
                 }).addTo(map);
             })
             .catch(error => {
+                clearTimeout(timeoutId); // Stop the stopwatch on error too
+
+            // Check if the error was caused by our timeout
+            if (error.name === 'AbortError') {
+                console.error('Fetch aborted due to server timeout.');
+            } else {
                 console.error('Error loading data:', error);
-                // If it fails, retry after 2 seconds
-                if (retries > 0) {
-                    console.warn(`Retrying in 2s... (${retries} attempts left)`);
-                    setTimeout(() => loadDistrictData(retries - 1), 2000);
-                } else {
-                    console.error('Final attempt failed. Please refresh the page.');
-                }
+            }
+
+            // Trigger the retry logic
+            if (retries > 0) {
+                console.warn(`Retrying in 2s... (${retries} attempts left)`);
+                setTimeout(() => loadDistrictData(retries - 1), 2000);
+            } else {
+                console.error('Final attempt failed. Please refresh the page.');
+            }
             });
 
     }
