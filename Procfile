@@ -1,1 +1,1 @@
-web: gunicorn CalEd.wsgi --access-logfile - --error-logfile -
+web: gunicorn CAEducationDjango.wsgi --access-logfile - --error-logfile -
