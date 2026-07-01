@@ -1,5 +1,15 @@
 document.addEventListener("DOMContentLoaded", function() {
-    console.log("DOM fully loaded. Initializing map elements...");
+    function checkLeaflet() {
+        if (window.leafletLoaded || (typeof L !== 'undefined')) {
+            console.log("Leaflet library ready, initializing map...");
+            // --- ALL YOUR EXISTING CODE STARTING FROM 'var caBounds = ...' ---
+            // ...
+        } else {
+            console.log("Waiting for Leaflet...");
+            setTimeout(checkLeaflet, 200); // Poll every 200ms
+        }
+    }
+    checkLeaflet();
     var caBounds = L.latLngBounds(
     L.latLng(32.5, -124.5), // Southwest corner
     L.latLng(42.0, -114.1)  // Northeast corner
