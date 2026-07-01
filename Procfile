@@ -1,0 +1,1 @@
+web: gunicorn CalEd.wsgi --access-logfile - --error-logfile -
