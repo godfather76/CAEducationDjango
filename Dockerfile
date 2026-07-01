@@ -1,3 +1,5 @@
+ARG REBUILD_DATE=2026-07-01
+
 # Start from the official lightweight Python 3.13 image
 FROM python:3.13-slim
 
