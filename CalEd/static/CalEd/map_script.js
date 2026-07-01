@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function() {
             console.warn("Request timed out! Forcing abort...");
         }, 15000);
 
-        fetch(apiUrl)
+        fetch(apiUrl, {signal: controller.signal})
             .then(response => {
                 clearTimeout(timeoutId); // Success! Stop the stopwatch.
                 if (!response.ok) throw new Error('Network response not ok');
