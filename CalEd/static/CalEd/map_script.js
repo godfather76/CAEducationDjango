@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
     // 3. Consolidated operational data loading container block
-    function loadDistrictData() {
+    function loadDistrictData(retries = 3) {
         var boundaryType = boundaryDropdown ? boundaryDropdown.value : 'district';
         var year = yearDropdown ? yearDropdown.value : '2022';
         var staffType = staffDropdown ? staffDropdown.value : 'TA';
@@ -81,24 +81,16 @@ document.addEventListener("DOMContentLoaded", function() {
         var student_group = studentGroupDropdown ? studentGroupDropdown.value : 'All Students'
         var score_type = scoreDropdown ? scoreDropdown.value : 'Percentage Met and Above'
 
-        // -----------------------------------------------------------------
-        // NOTATION: GRAB VALUES FROM FUTURE FILTERS HERE
-        // var customVal = customDropdown ? customDropdown.value : 'default';
-        // -----------------------------------------------------------------
-
-        // Inject active user choices directly into URL string query parameters
         var baseUrl = (boundaryType === 'county') ? '/api/counties/' : '/api/districts/';
         var apiUrl = `${baseUrl}?staff_type=${staffType}&year=${year}&test=${test}&student_group=${student_group}&score=${score_type}`;
 
-        console.log("Fetching data from URL:", apiUrl);
-
-        // -----------------------------------------------------------------
-        // NOTATION: APPEND FUTURE URL FILTER STRINGS HERE
-        // apiUrl += `&custom_field=${customVal}`;
-        // -----------------------------------------------------------------
+        console.log("Fetching data, attempts remaining:", retries);
 
         fetch(apiUrl)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('Network response not ok');
+                return response.json();
+            })
             .then(data => {
                 console.log("Data received. Features count:", data.features.length);
                 // Clean active layers off the map structure to block memory leaks
@@ -231,7 +223,17 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                 }).addTo(map);
             })
-            .catch(error => console.error('Error loading district data:', error));
+            .catch(error => {
+                console.error('Error loading data:', error);
+                // If it fails, retry after 2 seconds
+                if (retries > 0) {
+                    console.warn(`Retrying in 2s... (${retries} attempts left)`);
+                    setTimeout(() => loadDistrictData(retries - 1), 2000);
+                } else {
+                    console.error('Final attempt failed. Please refresh the page.');
+                }
+            });
+
     }
 
     // Attach operational listener arrays to refresh layer calculations when filters shift
