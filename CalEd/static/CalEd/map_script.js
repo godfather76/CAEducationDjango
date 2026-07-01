@@ -10,6 +10,11 @@ document.addEventListener("DOMContentLoaded", function() {
         maxBoundsViscosity: 1.0 // Prevents the user from dragging outside the bounds at all
     }).setView([36.7783, -119.4179], 6);
 
+    // Force Leaflet to recognize the div size immediately
+    setTimeout(function(){
+        map.invalidateSize();
+    }, 100);
+
     // 2. Load geographic underlying base tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
