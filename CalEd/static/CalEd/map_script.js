@@ -96,6 +96,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
         console.log("Fetching data, attempts remaining:", retries);
 
+        // 1. Create the Abort Controller (The Stopwatch)
+        const controller = new AbortController();
+
+        // 2. Set a timeout for 15 seconds (15000 milliseconds)
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+            console.warn("Request timed out! Forcing abort...");
+        }, 15000);
+
         fetch(apiUrl)
             .then(response => {
                 if (!response.ok) throw new Error('Network response not ok');
