@@ -1,1 +1,1 @@
-web: gunicorn CAEducationDjango.wsgi --access-logfile - --error-logfile -
+web: gunicorn CAEducationDjango.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile -
