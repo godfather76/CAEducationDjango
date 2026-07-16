@@ -1,0 +1,40 @@
+{%  extends 'EyeTartan/base.html' %}
+{% load static %}
+
+{% block content %}
+    <h1>Coming soon! Tartan identifier!</h1>
+    <p>Help me celebrate Scottish History and Culture!<br>
+    <br>
+    If you love kilts as much as I do, you may, also like me, want to know everything about them! If you're new to the
+    idea of kilts and tartan, don't worry, I won't leave you hanging!<br>
+    <br>
+    Tartan is the term used to describe a given specific pattern of plaid. Over time, these various tartans began to be
+    associated closely with various clans. Eventually, this was standardized. More information can be found at the
+    amazing <a href="https://www.tartanregister.gov.uk/index" target="_blank">Scottish Register of Tartans</a>. Go check
+    out the great work they're doing and get lost in the rabbit hole of tartans.<br>
+    <br>Another good resource is <a href="https://www.usakilts.com/" target="_blank">USA Kilts</a>. They also have a
+    great <a href="https://www.youtube.com/@USAKiltsOfficial" target="_blank">YouTube Channel</a> where they discuss
+    everything kilts and celtic! They are honestly a great source of anything kilt-adjacent, from fashion ideas to
+    interesting history and culture lessons. When I was early in my kilt journey, they were there for me! Join us!<br>
+    <br>
+    Currently, there are many websites that will help you find your Clan tartan, but currently they all require you to
+    either know what clan the tartan is associated with or search through similar colors. Often, it can be difficult to
+    understand some of the terms involved (sett, warp, weft, and twill, oh my!).<br>
+    <br>
+    What I intend to create here will not replace the above. In fact, my final model will link to all of the above where
+    applicable (I want you to use the registry, and I think you should buy from USA kilts. My silly little tool will
+    hopefully be a helpful addition to the kilt-iverse and find its place in the kilt tradition of the future.
+    Hey, a person can dream! XD<br>
+    <br>
+    <h2>Current State of the Project</h2>
+    <p>I was able to safely and ethically scrape somewhere around 11,000 photos of around 5,500 tartans. Currently, I
+    don't have any pictures of tartan "in the wild," which I'll eventually need in order to identify tartan hiding slyly
+    in the backgrounds of pictures; I have closeup photos of the pertinent section of each tartan. I have begun planning
+    the neural network and have started experimenting with transformation of the images to make imperfect examples. I
+    currently have a pipeline that will make 100 iterations of each image (toying with orientation and brightness).<br>
+    <br>
+    While I build the model, I'm also building this site (as you can see!)<br>
+    <br>
+    If you'd like to send me (preferably labeled) pictures of tartan, I would be greatly appreciative:
+    AnEyeForTartan@gmail.com</p>
+{% endblock %}

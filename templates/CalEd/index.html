@@ -1,0 +1,100 @@
+{%  extends 'CalEd/base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="text-secondary">
+        <h1>Education in California</h1>
+        <div class="map-controls-container_top border-0" data-bs-theme="dark" style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;
+        flex-wrap: wrap; padding: 15px; border-radius: 6px;">
+
+            <div class="control-group">
+                <label for="year-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">Year:</label>
+                <select id="year-dropdown" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 100px;">
+                    {% for year in available_years %}
+                        <option value="{{ year }}" {% if year == 2022 %}selected{% endif %}>
+                            {{ year }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="boundary-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">
+                    Area (County or District):</label>
+                <select id="boundary-dropdown" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 260px;">
+                    <option value="county" selected>County</option>
+                    <option value="district">District</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="map-controls-container_mid border-0" data-bs-theme="dark" style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;
+        flex-wrap: wrap; padding: 15px; border-radius: 6px;">
+            <div class="control-group">
+                <label for="test-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">Test:</label>
+                <select id="test-dropdown" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 100px;">
+                    {% for test in available_tests %}
+                        <option value="{{ test }}" {% if test == "SB - English Language Arts/Literacy" %}selected{% endif %}>
+                            {{ test }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="studentgroup-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">Student Group:</label>
+                <select id="studentgroup-dropdown" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 100px;">
+                    {% for student_group in available_student_groups %}
+                        <option value="{{ student_group }}" {% if student_group == "All Students" %}selected{% endif %}>
+                            {{ student_group }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="score-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">Score Metric:</label>
+                <select id="score-dropdown" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 100px;">
+                    {% for score in available_scores %}
+                        <option value="{{ score }}" {% if score == 'Percentage Met and Above' %}selected{% endif %}>
+                            {{ score }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+
+        <div class="map-controls-container_bottom border-0" data-bs-theme="dark" style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;
+        flex-wrap: wrap; padding: 15px; border-radius: 6px;">
+
+            <div class="control-group">
+                <label for="staff-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">Staff Category:</label>
+                <select id="staff-dropdown" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 260px;">
+                    <option value="T">Teachers Only</option>
+                    <option value="A">Administrators Only</option>
+                    <option value="S">Support Staff Only</option>
+                    <option value="TA" selected>Teachers and Administrators</option>
+                    <option value="TAS">Teachers, Administrators, and Support Staff</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="pay-dropdown" style="display: block; font-weight: bold; margin-bottom: 5px;">Pay Type:</label>
+                <select id="pay-dropdown" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 200px;">
+                    <option value="regular_pay">Regular Pay</option>
+                    <option value="overtime_pay">Overtime Pay</option>
+                    <option value="other_pay">Other Pay</option>
+                    <option value="total_pay">Total Pay</option>
+                    <option value="benefits">Benefits</option>
+                    <option value="total_pay_and_benefits" selected>Total Pay and Benefits</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <p>Note: There's a lot of data and I'm on a low-budget server, just give it a second ;{D}<br>
+    (If it doesn't load after 10 seconds or so, refresh or change a value, the server has to wake up)</p>
+    <div id="map"  style="height: 600px; width: 500px; border: 1px solid #ccc; border-radius: 4px;"></div>
+    <script src="{% static 'CalEd/map_script.js' %}" defer></script>
+
+{% endblock %}

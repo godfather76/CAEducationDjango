@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function() {
             var student_group = studentGroupDropdown ? studentGroupDropdown.value : 'All Students'
             var score_type = scoreDropdown ? scoreDropdown.value : 'Percentage Met and Above'
 
-            var baseUrl = (boundaryType === 'county') ? '/api/counties/' : '/api/districts/';
+            var baseUrl = (boundaryType === 'county') ? '/CalEd/api/counties/' : '/CalEd/api/districts/';
             var apiUrl = `${baseUrl}?staff_type=${staffType}&year=${year}&test=${test}&student_group=${student_group}&score=${score_type}`;
 
             console.log("Fetching data, attempts remaining:", retries);
@@ -286,7 +286,6 @@ document.addEventListener("DOMContentLoaded", function() {
             // Define the lower boundaries of your score increments
             var grades = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90];
 
-            div.innerHTML += '<strong>Score Scale</strong><br>';
 
             // Loop through intervals and generate a label with a colored square for each
             for (var i = 0; i < grades.length; i++) {

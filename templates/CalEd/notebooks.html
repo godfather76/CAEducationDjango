@@ -1,0 +1,19 @@
+{%  extends 'CalEd/base.html' %}
+{% load static %}
+
+{% block content %}
+<h1>Jupyter Notebooks</h1>
+    <p>I did the majority of data manipulation and cleaning in Jupyter notebooks. Below are links to the main notebooks
+    that were used for data manipulation, cleaning, and aggregation. I have included the Main App of the web scraper I
+    used for getting salary data.<br>
+    <br>
+    Data was gathered in CSV format except for scraped data, which was stored as a series of SQLite databases until they
+    were combined into one (the Jupyter notebook for that is included below).</p>
+<ul class="list-group">
+    <li class="list-group-item"><a href="{% url 'CalEd:WebScraperApp' %}" target="_blank">Main App of the Web Scraper</a></li>
+    <li class="list-group-item"><a href="{% url 'CalEd:TransparentCADataCombiner' %}" target="_blank">Clean scraped data and combine into single sqlite database</a></li>
+    <li class="list-group-item"><a href="{% url 'CalEd:SepIntoYears' %}" target="_blank">Separate Single SQLite DB into one DB for each year</a></li>
+    <li class="list-group-item"><a href="{% url 'CalEd:SalaryAggregate' %}" target="_blank">Clean and Aggregate Salary Data</a></li>
+    <li class="list-group-item"><a href="{% url 'CalEd:ToPostgreSQL' %}" target="_blank">Clean Data and Upload to PostgreSQL</a></li>
+</ul>
+{% endblock %}

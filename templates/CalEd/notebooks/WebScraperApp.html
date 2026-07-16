@@ -1,0 +1,452 @@
+<html>
+<head>
+<title>main_app.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+.s4 { color: #6aab73;}
+.s5 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+main_app.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">requests</span>
+<span class="s0">from </span><span class="s1">bs4 </span><span class="s0">import </span><span class="s1">BeautifulSoup</span>
+<span class="s0">from </span><span class="s1">urllib</span><span class="s2">.</span><span class="s1">parse </span><span class="s0">import </span><span class="s1">urljoin</span>
+<span class="s0">from </span><span class="s1">SQL </span><span class="s0">import </span><span class="s1">builder</span>
+<span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+<span class="s0">import </span><span class="s1">sqlite3</span>
+<span class="s0">import </span><span class="s1">concurrent</span><span class="s2">.</span><span class="s1">futures</span>
+<span class="s0">import </span><span class="s1">threading</span>
+<span class="s0">from </span><span class="s1">sqlite_worker </span><span class="s0">import </span><span class="s1">SqliteWorker</span>
+
+<span class="s1">MAX_THREADS </span><span class="s2">= </span><span class="s3">30</span>
+
+<span class="s0">async def </span><span class="s1">async_request</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">url</span><span class="s2">, </span><span class="s1">session</span><span class="s2">):</span>
+    <span class="s0">for </span><span class="s1">i </span><span class="s0">in </span><span class="s1">range</span><span class="s2">(</span><span class="s3">1</span><span class="s2">, </span><span class="s3">51</span><span class="s2">):</span>
+        <span class="s1">page_url </span><span class="s2">= </span><span class="s1">urljoin</span><span class="s2">(</span><span class="s1">url</span><span class="s2">, </span><span class="s4">f'?page=</span><span class="s0">{</span><span class="s1">str</span><span class="s2">(</span><span class="s1">i</span><span class="s2">)</span><span class="s0">}</span><span class="s4">&amp;s=-total'</span><span class="s2">)</span>
+        <span class="s1">print</span><span class="s2">(</span><span class="s1">page_url</span><span class="s2">)</span>
+        <span class="s1">response </span><span class="s2">= </span><span class="s0">await </span><span class="s1">session</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">url</span><span class="s2">)</span>
+        <span class="s1">page </span><span class="s2">= </span><span class="s1">response</span><span class="s2">.</span><span class="s1">text</span>
+        <span class="s1">page_soup </span><span class="s2">= </span><span class="s1">BeautifulSoup</span><span class="s2">(</span><span class="s1">page</span><span class="s2">, </span><span class="s4">'html.parser'</span><span class="s2">)</span>
+        <span class="s5"># Our data is in the tr tags so we find all</span>
+        <span class="s1">trs </span><span class="s2">= </span><span class="s1">page_soup</span><span class="s2">.</span><span class="s1">find_all</span><span class="s2">(</span><span class="s4">'tr'</span><span class="s2">)</span>
+        <span class="s1">count </span><span class="s2">= </span><span class="s3">0</span>
+        <span class="s0">for </span><span class="s1">tr </span><span class="s0">in </span><span class="s1">trs</span><span class="s2">[</span><span class="s3">1</span><span class="s2">:]:</span>
+            <span class="s1">root</span><span class="s2">.</span><span class="s1">parse_tr</span><span class="s2">(</span><span class="s1">tr</span><span class="s2">)</span>
+            <span class="s1">root</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'url'</span><span class="s2">] = </span><span class="s1">url</span>
+            <span class="s5"># # Make sure this entry doesn't already exist so we can stop and start:</span>
+            <span class="s5"># # If it exists, we'll just skip it</span>
+            <span class="s5"># if self.sql.select('main',</span>
+            <span class="s5">#                    table='salaries',</span>
+            <span class="s5">#                    columns=self.columns,</span>
+            <span class="s5">#                    where=self.write_dict,</span>
+            <span class="s5">#                    where_and=True):</span>
+            <span class="s5">#     print('skipping', self.write_dict['employee_name'], self.write_dict['year'])</span>
+            <span class="s5"># otherwise, we will insert the data</span>
+            <span class="s5"># else:</span>
+            <span class="s5"># root.sql.insert('main', table='salaries', data=root.write_dict)</span>
+            <span class="s1">print</span><span class="s2">(</span><span class="s4">'inserted'</span><span class="s2">, </span><span class="s4">'name:'</span><span class="s2">, </span><span class="s1">root</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'employee_name'</span><span class="s2">],</span>
+                  <span class="s4">'year:'</span><span class="s2">, </span><span class="s1">root</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'year'</span><span class="s2">],</span>
+                  <span class="s4">'county:'</span><span class="s2">, </span><span class="s1">root</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'county'</span><span class="s2">],</span>
+                  <span class="s4">'entity:'</span><span class="s2">, </span><span class="s1">root</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'entity'</span><span class="s2">])</span>
+            <span class="s5"># increment the count</span>
+            <span class="s1">count </span><span class="s2">+= </span><span class="s3">1</span>
+        <span class="s5"># if count is zero, we stop increasing</span>
+        <span class="s0">if </span><span class="s1">count </span><span class="s2">== </span><span class="s3">0</span><span class="s2">:</span>
+            <span class="s0">break</span>
+
+    <span class="s1">root</span><span class="s2">.</span><span class="s1">completed</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s1">url </span><span class="s2">+ </span><span class="s4">'</span><span class="s0">\n</span><span class="s4">'</span><span class="s2">)</span>
+    <span class="s0">return </span><span class="s1">response</span>
+
+<span class="s0">async def </span><span class="s1">make_async_requests</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">urls</span><span class="s2">):</span>
+    <span class="s0">async with </span><span class="s1">AsyncClient</span><span class="s2">() </span><span class="s0">as </span><span class="s1">session</span><span class="s2">:</span>
+        <span class="s1">tasks </span><span class="s2">= [</span><span class="s1">asyncio</span><span class="s2">.</span><span class="s1">create_task</span><span class="s2">(</span><span class="s1">async_request</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">url</span><span class="s2">, </span><span class="s1">session</span><span class="s2">)) </span><span class="s0">for </span><span class="s1">url </span><span class="s0">in </span><span class="s1">urls</span><span class="s2">]</span>
+        <span class="s1">responses </span><span class="s2">= </span><span class="s0">await </span><span class="s1">asyncio</span><span class="s2">.</span><span class="s1">gather</span><span class="s2">(*</span><span class="s1">tasks</span><span class="s2">)</span>
+    <span class="s0">return </span><span class="s1">responses</span>
+
+<span class="s0">class </span><span class="s1">MainApp</span><span class="s2">:</span>
+    <span class="s1">most_recent </span><span class="s2">= </span><span class="s0">None</span>
+    <span class="s1">write_dict </span><span class="s2">= {}</span>
+
+    <span class="s0">def </span><span class="s1">__init__</span><span class="s2">(</span><span class="s1">self</span><span class="s2">, </span><span class="s1">start_url</span><span class="s2">, </span><span class="s1">base_url</span><span class="s2">):</span>
+        <span class="s5"># Key should be the location of our db, value should be the alias, in this case main</span>
+        <span class="s1">db_info </span><span class="s2">= {</span><span class="s4">'SQL/salary_db.db'</span><span class="s2">: </span><span class="s4">'main'</span><span class="s2">}</span>
+        <span class="s5"># instantiate our builder, pass in db_info. Create=False because we want to create the table ourselves this time</span>
+        <span class="s5"># If the table isn't there, we want it to fail so we can make it correctly</span>
+        <span class="s1">self</span><span class="s2">.</span><span class="s1">sql </span><span class="s2">= </span><span class="s1">builder</span><span class="s2">.</span><span class="s1">Build</span><span class="s2">(</span><span class="s1">db_info</span><span class="s2">=</span><span class="s1">db_info</span><span class="s2">, </span><span class="s1">create</span><span class="s2">=</span><span class="s0">False</span><span class="s2">)</span>
+        <span class="s5"># We want to set up a dictionary where all columns but ID are set up as the keys that we can put values into later</span>
+        <span class="s5"># We start by making a list of the columns in the db and dropping the first element (ID).</span>
+        <span class="s1">self</span><span class="s2">.</span><span class="s1">columns </span><span class="s2">= </span><span class="s1">list</span><span class="s2">(</span><span class="s1">self</span><span class="s2">.</span><span class="s1">sql</span><span class="s2">.</span><span class="s1">column_names</span><span class="s2">(</span><span class="s4">'main'</span><span class="s2">, </span><span class="s1">table</span><span class="s2">=</span><span class="s4">'salaries'</span><span class="s2">))[</span><span class="s3">1</span><span class="s2">:]</span>
+
+        <span class="s1">self</span><span class="s2">.</span><span class="s1">worker </span><span class="s2">= </span><span class="s1">SqliteWorker</span><span class="s2">(</span><span class="s4">'SQL/salary_db.db'</span><span class="s2">)</span>
+        <span class="s1">self</span><span class="s2">.</span><span class="s1">completed </span><span class="s2">= []</span>
+
+        <span class="s5"># Our URL to start with</span>
+        <span class="s1">self</span><span class="s2">.</span><span class="s1">start_url </span><span class="s2">= </span><span class="s1">start_url</span>
+        <span class="s1">self</span><span class="s2">.</span><span class="s1">base_url </span><span class="s2">= </span><span class="s1">base_url</span>
+
+    <span class="s0">def </span><span class="s1">go</span><span class="s2">(</span><span class="s1">self</span><span class="s2">):</span>
+        <span class="s5"># Get a beautiful soup of the base url</span>
+        <span class="s1">base_soup </span><span class="s2">= </span><span class="s1">self</span><span class="s2">.</span><span class="s1">get_soup</span><span class="s2">(</span><span class="s1">self</span><span class="s2">.</span><span class="s1">start_url</span><span class="s2">)</span>
+        <span class="s5"># Find all td tags in the page</span>
+        <span class="s1">tds </span><span class="s2">= </span><span class="s1">base_soup</span><span class="s2">.</span><span class="s1">find_all</span><span class="s2">(</span><span class="s4">'td'</span><span class="s2">)</span>
+        <span class="s1">most_recent </span><span class="s2">= </span><span class="s1">self</span><span class="s2">.</span><span class="s1">get_most_recent_entry</span><span class="s2">()</span>
+        <span class="s1">start </span><span class="s2">= </span><span class="s0">False</span>
+        <span class="s5"># Loop through our td tags</span>
+        <span class="s0">for </span><span class="s1">i</span><span class="s2">, </span><span class="s1">td </span><span class="s0">in </span><span class="s1">enumerate</span><span class="s2">(</span><span class="s1">tds</span><span class="s2">):</span>
+            <span class="s5"># We've enumerated so we can skip the evens (the districts are doubled up and we only need one)</span>
+            <span class="s0">if </span><span class="s1">i </span><span class="s2">% </span><span class="s3">2 </span><span class="s2">== </span><span class="s3">0</span><span class="s2">:</span>
+                <span class="s0">continue</span>
+            <span class="s5"># Write_dict is the columns in our database (ID has already been removed because we don't need it for this)</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict </span><span class="s2">= {</span><span class="s1">x</span><span class="s2">: </span><span class="s0">None for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">self</span><span class="s2">.</span><span class="s1">columns</span><span class="s2">}</span>
+            <span class="s5"># The links are just the endings (where it delineates, at the date portion of the url), so we'll get them</span>
+            <span class="s5"># by searching the a tags</span>
+            <span class="s1">ending_list </span><span class="s2">= </span><span class="s1">td</span><span class="s2">.</span><span class="s1">find_all</span><span class="s2">(</span><span class="s4">'a'</span><span class="s2">)</span>
+            <span class="s0">for </span><span class="s1">ending </span><span class="s0">in </span><span class="s1">ending_list</span><span class="s2">:</span>
+                <span class="s1">this_ending </span><span class="s2">= </span><span class="s1">ending</span><span class="s2">[</span><span class="s4">'href'</span><span class="s2">]</span>
+                <span class="s0">if not </span><span class="s1">start</span><span class="s2">:</span>
+                    <span class="s1">start </span><span class="s2">= </span><span class="s1">self</span><span class="s2">.</span><span class="s1">check_start</span><span class="s2">(</span><span class="s1">this_ending</span><span class="s2">, </span><span class="s1">most_recent</span><span class="s2">)</span>
+                <span class="s0">if </span><span class="s1">start</span><span class="s2">:</span>
+                    <span class="s1">self</span><span class="s2">.</span><span class="s1">parse_url_info</span><span class="s2">(</span><span class="s1">this_ending</span><span class="s2">)</span>
+                    <span class="s1">this_url </span><span class="s2">= </span><span class="s1">urljoin</span><span class="s2">(</span><span class="s1">self</span><span class="s2">.</span><span class="s1">base_url</span><span class="s2">, </span><span class="s1">this_ending</span><span class="s2">)</span>
+                    <span class="s1">print</span><span class="s2">(</span><span class="s1">this_url</span><span class="s2">)</span>
+                    <span class="s5"># The site only actually shows entries for the first 50 pages, then asks you to download files</span>
+                    <span class="s5"># We'll check if it's more so we can skip ones with more and download them</span>
+                    <span class="s5"># If the function returns true, the page is full so we should skip it</span>
+                    <span class="s5"># The function logs it so we can download it later</span>
+                    <span class="s0">if </span><span class="s1">self</span><span class="s2">.</span><span class="s1">check_page50_full</span><span class="s2">(</span><span class="s1">this_url</span><span class="s2">):</span>
+                        <span class="s0">continue</span>
+                    <span class="s5"># If the page50 check didn't jump out of this, we'll land here</span>
+                    <span class="s5"># We want to loop through up to page 50</span>
+                    <span class="s0">for </span><span class="s1">j </span><span class="s0">in </span><span class="s1">range</span><span class="s2">(</span><span class="s3">1</span><span class="s2">, </span><span class="s3">51</span><span class="s2">):</span>
+                        <span class="s5"># Add page number to the URL</span>
+                        <span class="s1">page_url </span><span class="s2">= </span><span class="s1">urljoin</span><span class="s2">(</span><span class="s1">this_url</span><span class="s2">, </span><span class="s4">f'?page=</span><span class="s0">{</span><span class="s1">str</span><span class="s2">(</span><span class="s1">j</span><span class="s2">)</span><span class="s0">}</span><span class="s4">'</span><span class="s2">)</span>
+                        <span class="s1">print</span><span class="s2">(</span><span class="s1">page_url</span><span class="s2">)</span>
+                        <span class="s5"># request the html from the site</span>
+                        <span class="s1">page_soup </span><span class="s2">= </span><span class="s1">self</span><span class="s2">.</span><span class="s1">get_soup</span><span class="s2">(</span><span class="s1">page_url</span><span class="s2">)</span>
+                        <span class="s5"># Our data is in the tr tags so we find all</span>
+                        <span class="s1">trs </span><span class="s2">= </span><span class="s1">page_soup</span><span class="s2">.</span><span class="s1">find_all</span><span class="s2">(</span><span class="s4">'tr'</span><span class="s2">)</span>
+                        <span class="s5"># Now loop through them (the first one is the header, so we skip it)</span>
+                        <span class="s5"># Count is so we can jump out if count is zero</span>
+                        <span class="s1">count </span><span class="s2">= </span><span class="s3">0</span>
+                        <span class="s0">for </span><span class="s1">tr </span><span class="s0">in </span><span class="s1">trs</span><span class="s2">[</span><span class="s3">1</span><span class="s2">:]:</span>
+                            <span class="s1">self</span><span class="s2">.</span><span class="s1">parse_tr</span><span class="s2">(</span><span class="s1">tr</span><span class="s2">)</span>
+                            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'url'</span><span class="s2">] = </span><span class="s1">this_url</span>
+                            <span class="s5"># Make sure this entry doesn't already exist so we can stop and start:</span>
+                            <span class="s5"># If it exists, we'll just skip it</span>
+                            <span class="s0">if </span><span class="s1">self</span><span class="s2">.</span><span class="s1">sql</span><span class="s2">.</span><span class="s1">select</span><span class="s2">(</span><span class="s4">'main'</span><span class="s2">,</span>
+                                               <span class="s1">table</span><span class="s2">=</span><span class="s4">'salaries'</span><span class="s2">,</span>
+                                               <span class="s1">columns</span><span class="s2">=</span><span class="s1">self</span><span class="s2">.</span><span class="s1">columns</span><span class="s2">,</span>
+                                               <span class="s1">where</span><span class="s2">=</span><span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">,</span>
+                                               <span class="s1">where_and</span><span class="s2">=</span><span class="s0">True</span><span class="s2">):</span>
+                                <span class="s1">print</span><span class="s2">(</span><span class="s4">'skipping'</span><span class="s2">, </span><span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'employee_name'</span><span class="s2">], </span><span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'year'</span><span class="s2">])</span>
+                            <span class="s5"># otherwise, we will insert the data</span>
+                            <span class="s0">else</span><span class="s2">:</span>
+                                <span class="s1">self</span><span class="s2">.</span><span class="s1">sql</span><span class="s2">.</span><span class="s1">insert</span><span class="s2">(</span><span class="s4">'main'</span><span class="s2">, </span><span class="s1">table</span><span class="s2">=</span><span class="s4">'salaries'</span><span class="s2">, </span><span class="s1">data</span><span class="s2">=</span><span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">)</span>
+                                <span class="s5"># print('inserted', 'name:', self.write_dict['employee_name'],</span>
+                                <span class="s5">#       'year:', self.write_dict['year'],</span>
+                                <span class="s5">#       'county:', self.write_dict['county'],</span>
+                                <span class="s5">#       'entity:', self.write_dict['entity'])</span>
+                            <span class="s5"># increment the count</span>
+                            <span class="s1">count </span><span class="s2">+= </span><span class="s3">1</span>
+                        <span class="s5"># If there is only one page, there will not be page numbers, which means until 51, every page</span>
+                        <span class="s5"># number you supply, it will just repeat the one page of names.</span>
+                        <span class="s5"># So we check for pagination, and if it's not there, we stop here after the first page</span>
+                        <span class="s1">find </span><span class="s2">= </span><span class="s1">page_soup</span><span class="s2">.</span><span class="s1">find</span><span class="s2">(</span><span class="s4">'div'</span><span class="s2">, </span><span class="s1">class_</span><span class="s2">=</span><span class="s4">'pagination pagination-centered'</span><span class="s2">)</span>
+                        <span class="s0">if not </span><span class="s1">find</span><span class="s2">:</span>
+                            <span class="s0">break</span>
+                        <span class="s5"># if count is zero, we stop increasing</span>
+                        <span class="s0">if </span><span class="s1">count </span><span class="s2">== </span><span class="s3">0</span><span class="s2">:</span>
+                            <span class="s0">break</span>
+
+    <span class="s0">def </span><span class="s1">go_small</span><span class="s2">(</span><span class="s1">self</span><span class="s2">):</span>
+        <span class="s0">try</span><span class="s2">:</span>
+            <span class="s5"># Open and read the file</span>
+            <span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s4">'more_than_50.txt'</span><span class="s2">, </span><span class="s4">'r'</span><span class="s2">) </span><span class="s0">as </span><span class="s1">f</span><span class="s2">:</span>
+                <span class="s1">urls </span><span class="s2">= </span><span class="s1">f</span><span class="s2">.</span><span class="s1">readlines</span><span class="s2">()</span>
+            <span class="s1">f</span><span class="s2">.</span><span class="s1">close</span><span class="s2">()</span>
+            <span class="s5"># Replace the line breaks; also, I'm using the more_than_50.txt to keep track of what I've downloaded by putting an</span>
+            <span class="s5"># X before. So replacing that so they match the url  in the db and get removed as well.</span>
+            <span class="s1">url_list </span><span class="s2">= [</span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">x</span><span class="s2">.</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'</span><span class="s0">\n</span><span class="s4">'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">)</span><span class="s0">}</span><span class="s4">&quot; </span><span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">urls </span><span class="s0">if </span><span class="s4">'X' </span><span class="s0">not in </span><span class="s1">x</span><span class="s2">]</span>
+            <span class="s1">url_list </span><span class="s2">= [</span><span class="s1">x </span><span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">url_list </span><span class="s0">if </span><span class="s1">x </span><span class="s2">!= </span><span class="s4">''</span><span class="s2">]</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict </span><span class="s2">= {</span><span class="s1">x</span><span class="s2">: </span><span class="s0">None for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">self</span><span class="s2">.</span><span class="s1">columns</span><span class="s2">}</span>
+            <span class="s1">completed </span><span class="s2">= []</span>
+            <span class="s0">for </span><span class="s1">i</span><span class="s2">, </span><span class="s1">url </span><span class="s0">in </span><span class="s1">enumerate</span><span class="s2">(</span><span class="s1">url_list</span><span class="s2">):</span>
+                <span class="s1">print</span><span class="s2">(</span><span class="s1">url</span><span class="s2">)</span>
+                <span class="s1">this_ending </span><span class="s2">= </span><span class="s1">url</span><span class="s2">[</span><span class="s3">32</span><span class="s2">:]</span>
+                <span class="s1">self</span><span class="s2">.</span><span class="s1">parse_url_info</span><span class="s2">(</span><span class="s1">this_ending</span><span class="s2">)</span>
+                <span class="s0">for </span><span class="s1">i </span><span class="s0">in </span><span class="s1">range</span><span class="s2">(</span><span class="s3">1</span><span class="s2">, </span><span class="s3">51</span><span class="s2">):</span>
+                    <span class="s1">page_url </span><span class="s2">= </span><span class="s1">urljoin</span><span class="s2">(</span><span class="s1">url</span><span class="s2">, </span><span class="s4">f'?page=</span><span class="s0">{</span><span class="s1">str</span><span class="s2">(</span><span class="s1">i</span><span class="s2">)</span><span class="s0">}</span><span class="s4">&amp;s=total'</span><span class="s2">)</span>
+                    <span class="s1">print</span><span class="s2">(</span><span class="s1">page_url</span><span class="s2">)</span>
+                    <span class="s5"># request the html from the site</span>
+                    <span class="s1">page_soup </span><span class="s2">= </span><span class="s1">self</span><span class="s2">.</span><span class="s1">get_soup</span><span class="s2">(</span><span class="s1">page_url</span><span class="s2">)</span>
+                    <span class="s5"># Our data is in the tr tags so we find all</span>
+                    <span class="s1">trs </span><span class="s2">= </span><span class="s1">page_soup</span><span class="s2">.</span><span class="s1">find_all</span><span class="s2">(</span><span class="s4">'tr'</span><span class="s2">)</span>
+                    <span class="s1">count </span><span class="s2">= </span><span class="s3">0</span>
+                    <span class="s0">for </span><span class="s1">tr </span><span class="s0">in </span><span class="s1">trs</span><span class="s2">[</span><span class="s3">1</span><span class="s2">:]:</span>
+                        <span class="s1">self</span><span class="s2">.</span><span class="s1">parse_tr</span><span class="s2">(</span><span class="s1">tr</span><span class="s2">)</span>
+                        <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'url'</span><span class="s2">] = </span><span class="s1">url</span>
+                        <span class="s1">self</span><span class="s2">.</span><span class="s1">sql</span><span class="s2">.</span><span class="s1">insert</span><span class="s2">(</span><span class="s4">'main'</span><span class="s2">, </span><span class="s1">table</span><span class="s2">=</span><span class="s4">'salaries'</span><span class="s2">, </span><span class="s1">data</span><span class="s2">=</span><span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">)</span>
+                        <span class="s5"># print('inserted', 'name:', self.write_dict['employee_name'],</span>
+                        <span class="s5">#       'year:', self.write_dict['year'],</span>
+                        <span class="s5">#       'county:', self.write_dict['county'],</span>
+                        <span class="s5">#       'entity:', self.write_dict['entity'])</span>
+                        <span class="s5"># increment the count</span>
+                        <span class="s1">count </span><span class="s2">+= </span><span class="s3">1</span>
+                    <span class="s5"># if count is zero, we stop increasing</span>
+                    <span class="s0">if </span><span class="s1">count </span><span class="s2">== </span><span class="s3">0</span><span class="s2">:</span>
+                        <span class="s0">break</span>
+
+                <span class="s1">completed</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s1">url </span><span class="s2">+ </span><span class="s4">'</span><span class="s0">\n</span><span class="s4">'</span><span class="s2">)</span>
+        <span class="s0">except </span><span class="s1">KeyboardInterrupt</span><span class="s2">:</span>
+            <span class="s1">print</span><span class="s2">(</span><span class="s4">&quot;Interrupt detected, wrapping up&quot;</span><span class="s2">)</span>
+            <span class="s0">for </span><span class="s1">item </span><span class="s0">in </span><span class="s1">completed</span><span class="s2">:</span>
+                <span class="s1">urls</span><span class="s2">[</span><span class="s1">urls</span><span class="s2">.</span><span class="s1">index</span><span class="s2">(</span><span class="s1">item</span><span class="s2">)] = </span><span class="s4">'X' </span><span class="s2">+ </span><span class="s1">item</span>
+
+            <span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s4">'more_than_50.txt'</span><span class="s2">, </span><span class="s4">'w+'</span><span class="s2">) </span><span class="s0">as </span><span class="s1">f</span><span class="s2">:</span>
+                <span class="s1">f</span><span class="s2">.</span><span class="s1">writelines</span><span class="s2">(</span><span class="s1">urls</span><span class="s2">)</span>
+            <span class="s1">f</span><span class="s2">.</span><span class="s1">close</span><span class="s2">()</span>
+
+        <span class="s0">for </span><span class="s1">item </span><span class="s0">in </span><span class="s1">completed</span><span class="s2">:</span>
+            <span class="s1">urls</span><span class="s2">[</span><span class="s1">urls</span><span class="s2">.</span><span class="s1">index</span><span class="s2">(</span><span class="s1">item</span><span class="s2">)] = </span><span class="s4">'X' </span><span class="s2">+ </span><span class="s1">item</span>
+
+        <span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s4">'more_than_50.txt'</span><span class="s2">, </span><span class="s4">'w+'</span><span class="s2">) </span><span class="s0">as </span><span class="s1">f</span><span class="s2">:</span>
+            <span class="s1">f</span><span class="s2">.</span><span class="s1">writelines</span><span class="s2">(</span><span class="s1">urls</span><span class="s2">)</span>
+        <span class="s1">f</span><span class="s2">.</span><span class="s1">close</span><span class="s2">()</span>
+
+    <span class="s0">def </span><span class="s1">go_big_concurrent</span><span class="s2">(</span><span class="s1">self</span><span class="s2">):</span>
+        <span class="s5"># Open and read the file</span>
+        <span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s4">'more_than_50.txt'</span><span class="s2">, </span><span class="s4">'r'</span><span class="s2">) </span><span class="s0">as </span><span class="s1">f</span><span class="s2">:</span>
+            <span class="s1">urls </span><span class="s2">= </span><span class="s1">f</span><span class="s2">.</span><span class="s1">readlines</span><span class="s2">()</span>
+        <span class="s1">f</span><span class="s2">.</span><span class="s1">close</span><span class="s2">()</span>
+        <span class="s5"># Replace the line breaks; also, I'm using the more_than_50.txt to keep track of what I've downloaded by putting an</span>
+        <span class="s5"># X before. So replacing that so they match the url  in the db and get removed as well.</span>
+        <span class="s1">url_list </span><span class="s2">= [</span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">x</span><span class="s2">.</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'</span><span class="s0">\n</span><span class="s4">'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">)</span><span class="s0">}</span><span class="s4">&quot; </span><span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">urls </span><span class="s0">if </span><span class="s4">'X' </span><span class="s0">not in </span><span class="s1">x</span><span class="s2">]</span>
+        <span class="s1">url_list </span><span class="s2">= [</span><span class="s1">x </span><span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">url_list </span><span class="s0">if </span><span class="s1">x </span><span class="s2">!= </span><span class="s4">''</span><span class="s2">]</span>
+        <span class="s1">url_batch_list </span><span class="s2">= [[</span><span class="s4">f'</span><span class="s0">{</span><span class="s1">x</span><span class="s0">}</span><span class="s4">?page=</span><span class="s0">{</span><span class="s1">str</span><span class="s2">(</span><span class="s1">i</span><span class="s2">)</span><span class="s0">}</span><span class="s4">&amp;s=total' </span><span class="s0">for </span><span class="s1">i </span><span class="s0">in </span><span class="s1">range</span><span class="s2">(</span><span class="s3">1</span><span class="s2">, </span><span class="s3">51</span><span class="s2">)] </span><span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">url_list</span><span class="s2">]</span>
+        <span class="s1">threads </span><span class="s2">= []</span>
+        <span class="s0">for </span><span class="s1">url_batch </span><span class="s0">in </span><span class="s1">url_batch_list</span><span class="s2">:</span>
+            <span class="s1">t </span><span class="s2">= </span><span class="s1">threading</span><span class="s2">.</span><span class="s1">Thread</span><span class="s2">(</span><span class="s1">target</span><span class="s2">=</span><span class="s1">self</span><span class="s2">.</span><span class="s1">do_thing</span><span class="s2">, </span><span class="s1">args</span><span class="s2">=(</span><span class="s1">url_batch</span><span class="s2">,))</span>
+            <span class="s1">t</span><span class="s2">.</span><span class="s1">start</span><span class="s2">()</span>
+            <span class="s1">threads</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s1">t</span><span class="s2">)</span>
+
+        <span class="s0">for </span><span class="s1">t </span><span class="s0">in </span><span class="s1">threads</span><span class="s2">:</span>
+            <span class="s1">t</span><span class="s2">.</span><span class="s1">join</span><span class="s2">()</span>
+
+        <span class="s1">token </span><span class="s2">= </span><span class="s1">self</span><span class="s2">.</span><span class="s1">worker</span><span class="s2">.</span><span class="s1">execute</span><span class="s2">(</span><span class="s4">'SELECT COUNT(*) FROM salaries'</span><span class="s2">)</span>
+        <span class="s1">count </span><span class="s2">= </span><span class="s1">self</span><span class="s2">.</span><span class="s1">worker</span><span class="s2">.</span><span class="s1">fetch_results</span><span class="s2">(</span><span class="s1">token</span><span class="s2">)[</span><span class="s3">0</span><span class="s2">][</span><span class="s3">0</span><span class="s2">]</span>
+        <span class="s1">print</span><span class="s2">(</span><span class="s4">f'Scraped </span><span class="s0">{</span><span class="s1">count</span><span class="s0">} </span><span class="s4">records'</span><span class="s2">)</span>
+
+        <span class="s1">self</span><span class="s2">.</span><span class="s1">worker</span><span class="s2">.</span><span class="s1">close</span><span class="s2">()</span>
+
+    <span class="s0">def </span><span class="s1">do_thing</span><span class="s2">(</span><span class="s1">self</span><span class="s2">, </span><span class="s1">url_batch</span><span class="s2">):</span>
+        <span class="s0">for </span><span class="s1">page_url </span><span class="s0">in </span><span class="s1">url_batch</span><span class="s2">:</span>
+            <span class="s1">write_dict </span><span class="s2">= {}</span>
+            <span class="s1">page_soup </span><span class="s2">= </span><span class="s1">self</span><span class="s2">.</span><span class="s1">get_soup</span><span class="s2">(</span><span class="s1">page_url</span><span class="s2">)</span>
+            <span class="s1">url </span><span class="s2">= </span><span class="s1">page_url</span><span class="s2">[:-</span><span class="s3">16</span><span class="s2">]</span>
+            <span class="s1">print</span><span class="s2">(</span><span class="s1">url</span><span class="s2">)</span>
+            <span class="s1">this_ending </span><span class="s2">= </span><span class="s1">url</span><span class="s2">[</span><span class="s3">32</span><span class="s2">:]</span>
+            <span class="s5"># When we split the endings, some are entity and not county</span>
+            <span class="s1">this_split </span><span class="s2">= </span><span class="s1">this_ending</span><span class="s2">.</span><span class="s1">split</span><span class="s2">(</span><span class="s4">'/'</span><span class="s2">)</span>
+            <span class="s0">if </span><span class="s1">len</span><span class="s2">(</span><span class="s1">this_split</span><span class="s2">) == </span><span class="s3">7</span><span class="s2">:</span>
+                <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'county'</span><span class="s2">] = </span><span class="s1">this_split</span><span class="s2">[</span><span class="s3">4</span><span class="s2">].</span><span class="s1">strip</span><span class="s2">()</span>
+                <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'entity'</span><span class="s2">] = </span><span class="s1">this_split</span><span class="s2">[</span><span class="s3">5</span><span class="s2">].</span><span class="s1">strip</span><span class="s2">()</span>
+            <span class="s0">elif </span><span class="s1">len</span><span class="s2">(</span><span class="s1">this_split</span><span class="s2">) == </span><span class="s3">4</span><span class="s2">:</span>
+                <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'county'</span><span class="s2">] = </span><span class="s4">''</span>
+                <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'entity'</span><span class="s2">] = </span><span class="s1">this_split</span><span class="s2">[</span><span class="s3">3</span><span class="s2">].</span><span class="s1">strip</span><span class="s2">()</span>
+            <span class="s0">elif </span><span class="s1">len</span><span class="s2">(</span><span class="s1">this_split</span><span class="s2">) == </span><span class="s3">6</span><span class="s2">:</span>
+                <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'county'</span><span class="s2">] = </span><span class="s1">this_split</span><span class="s2">[</span><span class="s3">4</span><span class="s2">].</span><span class="s1">strip</span><span class="s2">()</span>
+                <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'entity'</span><span class="s2">] = </span><span class="s1">this_split</span><span class="s2">[</span><span class="s3">5</span><span class="s2">].</span><span class="s1">strip</span><span class="s2">()</span>
+            <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'year'</span><span class="s2">] = </span><span class="s1">this_split</span><span class="s2">[</span><span class="s3">2</span><span class="s2">]</span>
+            <span class="s5"># Our data is in the tr tags so we find all</span>
+            <span class="s1">trs </span><span class="s2">= </span><span class="s1">page_soup</span><span class="s2">.</span><span class="s1">find_all</span><span class="s2">(</span><span class="s4">'tr'</span><span class="s2">)</span>
+            <span class="s0">for </span><span class="s1">tr </span><span class="s0">in </span><span class="s1">trs</span><span class="s2">[</span><span class="s3">1</span><span class="s2">:]:</span>
+                <span class="s1">tds </span><span class="s2">= </span><span class="s1">tr</span><span class="s2">.</span><span class="s1">find_all</span><span class="s2">(</span><span class="s4">'td'</span><span class="s2">)</span>
+                <span class="s1">all_texts </span><span class="s2">= [</span><span class="s1">x</span><span class="s2">.</span><span class="s1">text</span><span class="s2">.</span><span class="s1">strip</span><span class="s2">() </span><span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">tds</span><span class="s2">]</span>
+
+                <span class="s1">all_texts</span><span class="s2">[</span><span class="s3">1</span><span class="s2">] = </span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">1</span><span class="s2">].</span><span class="s1">split</span><span class="s2">(</span><span class="s4">'</span><span class="s0">\n</span><span class="s4">'</span><span class="s2">)[</span><span class="s3">0</span><span class="s2">]</span>
+
+                <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'employee_name'</span><span class="s2">] = </span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">0</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">&quot;'&quot;</span><span class="s2">, </span><span class="s4">''</span><span class="s2">)</span>
+                <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'job_title'</span><span class="s2">] = </span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">1</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">&quot;'&quot;</span><span class="s2">, </span><span class="s4">''</span><span class="s2">)</span>
+                <span class="s5"># All except blocks below are because if there is text in one of these fields, we don't care about it, they're</span>
+                <span class="s5"># numeric. So whatever that is, we turn to NaN</span>
+                <span class="s0">try</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'regular_pay'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">2</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+                <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'regular_pay'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+                <span class="s0">try</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'overtime_pay'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">3</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+                <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'overtime_pay'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+                <span class="s0">try</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'other_pay'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">4</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+                <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'other_pay'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+                <span class="s0">try</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'total_pay'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">5</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+                <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'total_pay'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+                <span class="s0">try</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'benefits'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">6</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+                <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'benefits'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+                <span class="s0">try</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'total_pay_and_benefits'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">7</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+                <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+                    <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'total_pay_and_benefits'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+                <span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'url'</span><span class="s2">] = </span><span class="s1">url</span>
+                <span class="s0">try</span><span class="s2">:</span>
+                    <span class="s1">self</span><span class="s2">.</span><span class="s1">worker</span><span class="s2">.</span><span class="s1">execute</span><span class="s2">(</span><span class="s4">'INSERT INTO salaries (employee_name, job_title, county, entity, year, regular_pay,'</span>
+                                        <span class="s4">' overtime_pay, other_pay, total_pay, benefits, total_pay_and_benefits, url) VALUES '</span>
+                                        <span class="s4">'(:employee_name, :job_title, :county, :entity, :year, :regular_pay, :overtime_pay,'</span>
+                                        <span class="s4">' :other_pay, :total_pay, :benefits, '</span>
+                                        <span class="s4">':total_pay_and_benefits, :url)'</span><span class="s2">, </span><span class="s1">write_dict</span><span class="s2">)</span>
+                <span class="s0">except </span><span class="s1">Exception </span><span class="s0">as </span><span class="s1">e</span><span class="s2">:</span>
+                    <span class="s1">print</span><span class="s2">(</span><span class="s4">f'Error writing </span><span class="s0">{</span><span class="s1">url</span><span class="s0">}</span><span class="s4">: </span><span class="s0">{</span><span class="s1">e</span><span class="s0">}</span><span class="s4">'</span><span class="s2">)</span>
+                <span class="s1">self</span><span class="s2">.</span><span class="s1">completed</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s1">url </span><span class="s2">+ </span><span class="s4">'</span><span class="s0">\n</span><span class="s4">'</span><span class="s2">)</span>
+                <span class="s5"># print('inserted', 'name:', write_dict['employee_name'],</span>
+                <span class="s5">#   'year:', self.write_dict['year'],</span>
+                <span class="s5">#   'county:', self.write_dict['county'],</span>
+                <span class="s5">#   'entity:', self.write_dict['entity'])</span>
+
+    <span class="s0">def </span><span class="s1">check_pages</span><span class="s2">(</span><span class="s1">self</span><span class="s2">):</span>
+        <span class="s1">more_than_100 </span><span class="s2">= []</span>
+        <span class="s0">try</span><span class="s2">:</span>
+            <span class="s5"># Open and read the file</span>
+            <span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s4">'more_than_50.txt'</span><span class="s2">, </span><span class="s4">'r'</span><span class="s2">) </span><span class="s0">as </span><span class="s1">f</span><span class="s2">:</span>
+                <span class="s1">urls </span><span class="s2">= </span><span class="s1">f</span><span class="s2">.</span><span class="s1">readlines</span><span class="s2">()</span>
+            <span class="s1">f</span><span class="s2">.</span><span class="s1">close</span><span class="s2">()</span>
+            <span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s4">'more_than_100.txt'</span><span class="s2">, </span><span class="s4">'r'</span><span class="s2">) </span><span class="s0">as </span><span class="s1">f</span><span class="s2">:</span>
+                <span class="s1">lines </span><span class="s2">= </span><span class="s1">f</span><span class="s2">.</span><span class="s1">readlines</span><span class="s2">()</span>
+            <span class="s1">f</span><span class="s2">.</span><span class="s1">close</span><span class="s2">()</span>
+            <span class="s1">last_entry </span><span class="s2">= </span><span class="s1">lines</span><span class="s2">[-</span><span class="s3">1</span><span class="s2">].</span><span class="s1">split</span><span class="s2">(</span><span class="s4">': '</span><span class="s2">)[</span><span class="s3">0</span><span class="s2">]</span>
+
+            <span class="s5"># Replace the line breaks; also, I'm using the more_than_50.txt to keep track of what I've downloaded by putting an</span>
+            <span class="s5"># X before. So replacing that so they match the url  in the db and get removed as well.</span>
+            <span class="s1">url_list </span><span class="s2">= [</span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">x</span><span class="s2">.</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'</span><span class="s0">\n</span><span class="s4">'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'X'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">)</span><span class="s0">}</span><span class="s4">&quot; </span><span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">urls</span><span class="s2">]</span>
+            <span class="s1">url_list </span><span class="s2">= [</span><span class="s1">x </span><span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">url_list </span><span class="s0">if </span><span class="s1">x </span><span class="s2">!= </span><span class="s4">''</span><span class="s2">]</span>
+            <span class="s0">try</span><span class="s2">:</span>
+                <span class="s1">start_idx </span><span class="s2">= </span><span class="s1">url_list</span><span class="s2">.</span><span class="s1">index</span><span class="s2">(</span><span class="s1">last_entry</span><span class="s2">)</span>
+            <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+                <span class="s1">start_idx </span><span class="s2">= </span><span class="s3">0</span>
+
+            <span class="s0">for </span><span class="s1">i</span><span class="s2">, </span><span class="s1">url </span><span class="s0">in </span><span class="s1">enumerate</span><span class="s2">(</span><span class="s1">url_list</span><span class="s2">[</span><span class="s1">start_idx </span><span class="s2">+ </span><span class="s3">1</span><span class="s2">:]):</span>
+                <span class="s1">print</span><span class="s2">(</span><span class="s1">url</span><span class="s2">)</span>
+                <span class="s1">page_soup </span><span class="s2">= </span><span class="s1">self</span><span class="s2">.</span><span class="s1">get_soup</span><span class="s2">(</span><span class="s1">url</span><span class="s2">)</span>
+                <span class="s5"># Our data is in the tr tags so we find all</span>
+                <span class="s1">txt </span><span class="s2">= </span><span class="s1">page_soup</span><span class="s2">.</span><span class="s1">find</span><span class="s2">(</span><span class="s4">'span'</span><span class="s2">, </span><span class="s1">class_</span><span class="s2">=</span><span class="s4">'page_subtitle'</span><span class="s2">).</span><span class="s1">text</span><span class="s2">.</span><span class="s1">strip</span><span class="s2">()</span>
+                <span class="s1">find_page_nums </span><span class="s2">= </span><span class="s1">page_soup</span><span class="s2">.</span><span class="s1">find</span><span class="s2">(</span><span class="s4">'div'</span><span class="s2">, </span><span class="s1">class_</span><span class="s2">=</span><span class="s4">'pagination pagination-centered'</span><span class="s2">)</span>
+                <span class="s0">if not </span><span class="s1">find_page_nums</span><span class="s2">:</span>
+                    <span class="s0">continue</span>
+                <span class="s1">pages </span><span class="s2">= </span><span class="s1">int</span><span class="s2">(</span><span class="s1">txt</span><span class="s2">.</span><span class="s1">split</span><span class="s2">(</span><span class="s4">'Page'</span><span class="s2">)[</span><span class="s3">1</span><span class="s2">].</span><span class="s1">split</span><span class="s2">(</span><span class="s4">'</span><span class="s0">\xa0</span><span class="s4">'</span><span class="s2">)[-</span><span class="s3">1</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+
+                <span class="s0">if </span><span class="s1">pages </span><span class="s2">&gt; </span><span class="s3">100</span><span class="s2">:</span>
+                    <span class="s1">more_than_100</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s4">f'</span><span class="s0">{</span><span class="s1">url</span><span class="s0">}</span><span class="s4">: </span><span class="s0">{</span><span class="s1">pages</span><span class="s0">} </span><span class="s4">pages</span><span class="s0">\n</span><span class="s4">'</span><span class="s2">)</span>
+        <span class="s0">except</span><span class="s2">:</span>
+            <span class="s1">print</span><span class="s2">(</span><span class="s1">txt</span><span class="s2">)</span>
+            <span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s4">'more_than_100.txt'</span><span class="s2">, </span><span class="s4">'w+'</span><span class="s2">) </span><span class="s0">as </span><span class="s1">f</span><span class="s2">:</span>
+                <span class="s1">f</span><span class="s2">.</span><span class="s1">writelines</span><span class="s2">(</span><span class="s1">more_than_100</span><span class="s2">)</span>
+            <span class="s1">f</span><span class="s2">.</span><span class="s1">close</span><span class="s2">()</span>
+            <span class="s1">exit</span><span class="s2">()</span>
+        <span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s4">'more_than_100.txt'</span><span class="s2">, </span><span class="s4">'w+'</span><span class="s2">) </span><span class="s0">as </span><span class="s1">f</span><span class="s2">:</span>
+            <span class="s1">f</span><span class="s2">.</span><span class="s1">writelines</span><span class="s2">(</span><span class="s1">more_than_100</span><span class="s2">)</span>
+        <span class="s1">f</span><span class="s2">.</span><span class="s1">close</span><span class="s2">()</span>
+
+    <span class="s0">def </span><span class="s1">check_page50_full</span><span class="s2">(</span><span class="s1">self</span><span class="s2">, </span><span class="s1">this_url</span><span class="s2">):</span>
+        <span class="s5"># The site only actually shows entries for the first 50 pages</span>
+        <span class="s5"># Adding this code to check if it's more so we can skip ones with more</span>
+        <span class="s1">page50_url </span><span class="s2">= </span><span class="s1">urljoin</span><span class="s2">(</span><span class="s1">this_url</span><span class="s2">, </span><span class="s4">f'?page=50'</span><span class="s2">)</span>
+        <span class="s1">page50 </span><span class="s2">= </span><span class="s1">requests</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">page50_url</span><span class="s2">)</span>
+        <span class="s1">this_soup </span><span class="s2">= </span><span class="s1">BeautifulSoup</span><span class="s2">(</span><span class="s1">page50</span><span class="s2">.</span><span class="s1">content</span><span class="s2">, </span><span class="s4">'html.parser'</span><span class="s2">)</span>
+        <span class="s1">trs50 </span><span class="s2">= </span><span class="s1">this_soup</span><span class="s2">.</span><span class="s1">find_all</span><span class="s2">(</span><span class="s4">'tr'</span><span class="s2">)</span>
+        <span class="s5"># if page 50 is full, we assume it has more than 50</span>
+        <span class="s0">if </span><span class="s1">len</span><span class="s2">(</span><span class="s1">trs50</span><span class="s2">) == </span><span class="s3">51</span><span class="s2">:</span>
+            <span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s4">'more_than_50.txt'</span><span class="s2">, </span><span class="s4">'a+'</span><span class="s2">) </span><span class="s0">as </span><span class="s1">f</span><span class="s2">:</span>
+                <span class="s1">f</span><span class="s2">.</span><span class="s1">write</span><span class="s2">(</span><span class="s1">this_url </span><span class="s2">+ </span><span class="s4">'</span><span class="s0">\n</span><span class="s4">'</span><span class="s2">)</span>
+            <span class="s1">f</span><span class="s2">.</span><span class="s1">close</span><span class="s2">()</span>
+            <span class="s0">return True</span>
+        <span class="s0">return False</span>
+
+    <span class="s0">def </span><span class="s1">check_start</span><span class="s2">(</span><span class="s1">self</span><span class="s2">, </span><span class="s1">this_ending</span><span class="s2">, </span><span class="s1">most_recent</span><span class="s2">):</span>
+        <span class="s5"># If the most recent url endswith this ending, we'll go ahead and start parsing again</span>
+        <span class="s5"># But first we check that it's not None. If it's None, there were no entries so no most recent exists</span>
+        <span class="s0">if </span><span class="s1">most_recent </span><span class="s0">and </span><span class="s1">most_recent</span><span class="s2">.</span><span class="s1">endswith</span><span class="s2">(</span><span class="s1">this_ending</span><span class="s2">):</span>
+            <span class="s0">return True</span>
+        <span class="s0">elif not </span><span class="s1">most_recent</span><span class="s2">:</span>
+            <span class="s0">return True</span>
+        <span class="s0">else</span><span class="s2">:</span>
+            <span class="s0">return False</span>
+
+    <span class="s0">def </span><span class="s1">get_most_recent_entry</span><span class="s2">(</span><span class="s1">self</span><span class="s2">):</span>
+        <span class="s1">most_recent </span><span class="s2">= </span><span class="s1">self</span><span class="s2">.</span><span class="s1">sql</span><span class="s2">.</span><span class="s1">select</span><span class="s2">(</span><span class="s4">'main'</span><span class="s2">,</span>
+                                      <span class="s1">table</span><span class="s2">=</span><span class="s4">'salaries'</span><span class="s2">,</span>
+                                      <span class="s1">columns</span><span class="s2">=[</span><span class="s4">'url'</span><span class="s2">],</span>
+                                      <span class="s1">where</span><span class="s2">=</span><span class="s4">'ID=(SELECT MAX(ID) FROM salaries)'</span><span class="s2">)</span>
+        <span class="s0">if </span><span class="s1">most_recent</span><span class="s2">:</span>
+            <span class="s0">return </span><span class="s1">most_recent</span><span class="s2">[</span><span class="s3">0</span><span class="s2">][</span><span class="s3">0</span><span class="s2">]</span>
+        <span class="s0">else</span><span class="s2">:</span>
+            <span class="s0">return None</span>
+
+    <span class="s0">def </span><span class="s1">get_soup</span><span class="s2">(</span><span class="s1">self</span><span class="s2">, </span><span class="s1">url</span><span class="s2">):</span>
+        <span class="s5"># Request the HTML from the page</span>
+        <span class="s1">page </span><span class="s2">= </span><span class="s1">requests</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">url</span><span class="s2">)</span>
+        <span class="s5"># Turn it into soup and return the soup</span>
+        <span class="s0">return </span><span class="s1">BeautifulSoup</span><span class="s2">(</span><span class="s1">page</span><span class="s2">.</span><span class="s1">content</span><span class="s2">, </span><span class="s4">'html.parser'</span><span class="s2">)</span>
+
+    <span class="s0">def </span><span class="s1">parse_tr</span><span class="s2">(</span><span class="s1">self</span><span class="s2">, </span><span class="s1">tr</span><span class="s2">):</span>
+        <span class="s1">tds </span><span class="s2">= </span><span class="s1">tr</span><span class="s2">.</span><span class="s1">find_all</span><span class="s2">(</span><span class="s4">'td'</span><span class="s2">)</span>
+        <span class="s1">all_texts </span><span class="s2">= [</span><span class="s1">x</span><span class="s2">.</span><span class="s1">text</span><span class="s2">.</span><span class="s1">strip</span><span class="s2">() </span><span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">tds</span><span class="s2">]</span>
+
+        <span class="s1">all_texts</span><span class="s2">[</span><span class="s3">1</span><span class="s2">] = </span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">1</span><span class="s2">].</span><span class="s1">split</span><span class="s2">(</span><span class="s4">'</span><span class="s0">\n</span><span class="s4">'</span><span class="s2">)[</span><span class="s3">0</span><span class="s2">]</span>
+
+        <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'employee_name'</span><span class="s2">] = </span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">0</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">&quot;'&quot;</span><span class="s2">, </span><span class="s4">''</span><span class="s2">)</span>
+        <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'job_title'</span><span class="s2">] = </span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">1</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">&quot;'&quot;</span><span class="s2">, </span><span class="s4">''</span><span class="s2">)</span>
+        <span class="s5"># All except blocks below are because if there is text in one of these fields, we don't care about it, they're</span>
+        <span class="s5"># numeric. So whatever that is, we turn to NaN</span>
+        <span class="s0">try</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'regular_pay'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">2</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+        <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'regular_pay'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+        <span class="s0">try</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'overtime_pay'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">3</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+        <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'overtime_pay'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+        <span class="s0">try</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'other_pay'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">4</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+        <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'other_pay'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+        <span class="s0">try</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'total_pay'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">5</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+        <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'total_pay'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+        <span class="s0">try</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'benefits'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">6</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+        <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'benefits'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+        <span class="s0">try</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'total_pay_and_benefits'</span><span class="s2">] = </span><span class="s1">float</span><span class="s2">(</span><span class="s1">all_texts</span><span class="s2">[</span><span class="s3">7</span><span class="s2">].</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">'$'</span><span class="s2">, </span><span class="s4">''</span><span class="s2">).</span><span class="s1">replace</span><span class="s2">(</span><span class="s4">','</span><span class="s2">, </span><span class="s4">''</span><span class="s2">))</span>
+        <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'total_pay_and_benefits'</span><span class="s2">] = </span><span class="s1">np</span><span class="s2">.</span><span class="s1">nan</span>
+
+    <span class="s0">def </span><span class="s1">parse_url_info</span><span class="s2">(</span><span class="s1">self</span><span class="s2">, </span><span class="s1">this_ending</span><span class="s2">):</span>
+        <span class="s5"># When we split the endings, some are entity and not county</span>
+        <span class="s1">this_split </span><span class="s2">= </span><span class="s1">this_ending</span><span class="s2">.</span><span class="s1">split</span><span class="s2">(</span><span class="s4">'/'</span><span class="s2">)</span>
+
+        <span class="s0">if </span><span class="s1">len</span><span class="s2">(</span><span class="s1">this_split</span><span class="s2">) == </span><span class="s3">7</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'county'</span><span class="s2">] = </span><span class="s1">this_split</span><span class="s2">[</span><span class="s3">4</span><span class="s2">].</span><span class="s1">strip</span><span class="s2">()</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'entity'</span><span class="s2">] = </span><span class="s1">this_split</span><span class="s2">[</span><span class="s3">5</span><span class="s2">].</span><span class="s1">strip</span><span class="s2">()</span>
+        <span class="s0">elif </span><span class="s1">len</span><span class="s2">(</span><span class="s1">this_split</span><span class="s2">) == </span><span class="s3">5</span><span class="s2">:</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'county'</span><span class="s2">] = </span><span class="s0">None</span>
+            <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'entity'</span><span class="s2">] = </span><span class="s1">this_split</span><span class="s2">[</span><span class="s3">3</span><span class="s2">].</span><span class="s1">strip</span><span class="s2">()</span>
+        <span class="s1">self</span><span class="s2">.</span><span class="s1">write_dict</span><span class="s2">[</span><span class="s4">'year'</span><span class="s2">] = </span><span class="s1">this_split</span><span class="s2">[</span><span class="s3">2</span><span class="s2">]</span>
+</pre>
+</body>
+</html>

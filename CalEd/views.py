@@ -1,12 +1,8 @@
-from django.db.models import Count, Avg
+from django.db.models import Avg
 from django.db.models.functions import Round
-from django.views import generic
-from django.contrib.gis.geos import fromstr
-from django.contrib.gis.db.models.functions import Distance, Transform
 from .models import *
-from django.core.serializers import serialize
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 import json
 
 def index(request):
@@ -53,35 +49,31 @@ def index(request):
         'available_tests': available_tests,
         'available_scores': available_scores,
     }
-    return render(request, 'index.html', context)
-
-
-def about(request):
-    return render(request, 'about.html')
+    return render(request, 'CalEd/index.html', context)
 
 def project_about(request):
-    return render(request, 'project_about.html')
+    return render(request, 'CalEd/project_about.html')
 
 def notebooks(request):
-    return render(request, 'notebooks.html')
+    return render(request, 'CalEd/notebooks.html')
 
 def WebScraperApp(request):
-    return render(request, 'notebooks/WebScraperApp.html')
+    return render(request, 'CalEd/notebooks/WebScraperApp.html')
 
 def TransparentCADataCombiner(request):
-    return render(request, 'notebooks/TransparentCADataCombiner.html')
+    return render(request, 'CalEd/notebooks/TransparentCADataCombiner.html')
 
 def SepIntoYears(request):
-    return render(request, 'notebooks/SepIntoYears.html')
+    return render(request, 'CalEd/notebooks/SepIntoYears.html')
 
 def ToPostgreSQL(request):
-    return render(request, 'notebooks/ToPostgreSQL.html')
+    return render(request, 'CalEd/notebooks/ToPostgreSQL.html')
 
 def SalaryAggregate(request):
-    return render(request, 'notebooks/SalaryAggregate.html')
+    return render(request, 'CalEd/notebooks/SalaryAggregate.html')
 
 def links(request):
-    return render(request, 'links.html')
+    return render(request, 'CalEd/links.html')
 
 
 def county_geo_json(request):

@@ -32,7 +32,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'CalEd'
+    'Frontman',
+    'CalEd',
+    'EyeTartan'
 ]
 
 MEDIA_ROOT = env("MEDIA_ROOT", default=BASE_DIR / "media")

@@ -1,0 +1,62 @@
+{% extends 'Frontman/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-12 text-gray-300">
+
+    <!-- Page Header -->
+    <header class="text-center mb-16">
+        <h1 class="text-4xl font-extrabold text-white mb-4">Welcome to my little slice of the data world!</h1>
+        <p class="text-lg text-gray-400 max-w-2xl mx-auto">
+            Exploring data through interactive visualizations, machine learning, and full-stack development.
+        </p>
+    </header>
+
+    <!-- Project Grid -->
+    <div class="grid md:grid-cols-2 gap-8">
+
+        <!-- Project Card 1: California Education -->
+        <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden flex flex-col hover:shadow-2xl hover:border-gray-600 transition-all">
+            <div class="p-6 flex-grow">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-white">Education in California</h2>
+                    <span class="bg-blue-900 text-blue-200 text-xs font-semibold px-2.5 py-0.5 rounded border border-blue-700">Data Viz</span>
+                </div>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    An interactive map tracking student passing metrics across California. Hover over counties or districts to explore high, low, and median salary data for teachers, administrators, and support staff.
+                </p>
+            </div>
+            <div class="px-6 py-4 bg-gray-900 border-t border-gray-700 mt-auto">
+                <a href="{% url 'CalEd:index' %}" class="block w-full text-center bg-blue-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-500 transition-colors">
+                    Explore the Map
+                </a>
+            </div>
+        </div>
+
+        <!-- Project Card 2: Tartan Identifier -->
+        <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden flex flex-col hover:shadow-2xl hover:border-gray-600 transition-all">
+            <div class="p-6 flex-grow">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-white">TartanIdentifier</h2>
+                    <span class="bg-purple-900 text-purple-200 text-xs font-semibold px-2.5 py-0.5 rounded border border-purple-700">Machine Learning &nbsp;•&nbsp; WIP</span>
+                </div>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    A machine learning model trained on a custom dataset of 10,000 images to identify 5,500+ registered Scottish tartans. Upload a photo to receive pattern predictions and direct links to the Scottish Tartan registry.
+                </p>
+                <p class="text-sm text-gray-400 italic">
+                    Currently gathering labeled photos to refine the model. Web upload form coming soon.
+                </p>
+            </div>
+            <div class="px-6 py-4 bg-gray-900 border-t border-gray-700 mt-auto flex items-center justify-between">
+                <a href="{% url 'EyeTartan:index' %}" class="bg-blue-600 text-white font-medium px-6 py-2 rounded-lg hover:bg-blue-500 transition-colors">
+                    View Project
+                </a>
+                <a href="mailto:AnEyeForTartan@gmail.com" class="text-sm font-medium text-gray-400 hover:text-blue-400 transition-colors">
+                    Email Project
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
