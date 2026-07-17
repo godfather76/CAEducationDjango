@@ -35,6 +35,26 @@
     <br>
     While I build the model, I'm also building this site (as you can see!)<br>
     <br>
+    I have started to build a model to see how it goes (knowing full well that there will be some things to iron out).
+    I've been playing with image data generation, which takes the perfect tartan image square and flips it and turns it
+    and changes the brightness to make a bunch of variations of the picture. This makes it so the machine learning model
+    can learn on imperfect data and not just get used to seeing a tartan in that exact orientation. This is a start,
+    but as you can see in <a href="{% url 'EyeTartan:TartanExplore' %}" target="_blank">this Jupyter Notebook</a>, it's
+    not quite enough. My model is currently vastly overfitting (doing great at the small amount of training data and
+    then doing terribly when trying to classify the data it hasn't seen yet).<br>
+    <br>
+    When I originally played around with image data generation, I was using the tensorflow/keras image preprocessing
+    ImageDataGenerator. But when I was reading about it, I read about the above tactic of adding it directly into the
+    sequential neural network model. Because it wasn't going well, I decided to try
+    <a href="{% url 'EyeTartan:TartanExploreDataImageGen' %}" target="_blank">with ImageDataGenerator</a>.
+    As you can see, this doesn't solve the problem of overfitting.<br>
+    <br>
+    Next step is to create a python program that takes each tartan image I have and pieces it together to make larger
+    tartan images, more like a bolt of plaid. Then I'll write another program that takes the new images and changes the
+    lighting, shadows, saturation, etc. In short, in the absence of the images I need, I am going to see about creating
+    them myself.<br>
+    <br>
+    <h2>Contribute to the Project</h2>
     If you'd like to send me (preferably labeled) pictures of tartan, I would be greatly appreciative:
     AnEyeForTartan@gmail.com</p>
 {% endblock %}
