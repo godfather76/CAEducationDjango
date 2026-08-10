@@ -20,7 +20,7 @@
             <div class="p-6 flex-grow">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-2xl font-bold text-white">Education in California</h2>
-                    <span class="bg-blue-900 text-blue-200 text-xs font-semibold px-2.5 py-0.5 rounded border border-blue-700">Data Viz</span>
+                    <span class="bg-blue-900 text-blue-200 text-xs font-semibold px-2.5 py-0.5 rounded border border-blue-700">Data Visualization</span>
                 </div>
                 <p class="text-gray-300 leading-relaxed mb-4">
                     An interactive map tracking student passing metrics across California. Hover over counties or districts to explore high, low, and median salary data for teachers, administrators, and support staff.
@@ -33,12 +33,38 @@
             </div>
         </div>
 
-        <!-- Project Card 2: Tartan Identifier -->
+        <!-- Project Card 2: Guild Wars 2 Crafting Material Price Predictor -->
         <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden flex flex-col hover:shadow-2xl hover:border-gray-600 transition-all">
             <div class="p-6 flex-grow">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-2xl font-bold text-white">TartanIdentifier</h2>
-                    <span class="bg-purple-900 text-purple-200 text-xs font-semibold px-2.5 py-0.5 rounded border border-purple-700">Machine Learning &nbsp;•&nbsp; WIP</span>
+                    <h2 class="text-2xl font-bold text-white">Guild Wars 2 Crafting Material Price Predictor</h2>
+                    <span class="bg-purple-900 text-purple-200 text-xs font-semibold px-2.5 py-0.5 rounded border border-purple-700">Machine Learning &nbsp;•&nbsp; Work In Progress</span>
+                </div>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    A machine learning model to predict prices for crafting materials in Guild Wars 2. The game has a
+                    trading post where players can buy and sell a variety of items. Often, you can end up with a lot of
+                    one item you don't need, and it would be useful to know how much an item will cost at some future
+                    time.
+                </p>
+                <p class="text-sm text-gray-400 italic">
+                    Currently doing a second round of feature engineering after my first run through produced ok results
+                    but nothing amazing. At the same time, I'm going to move forward with deploying the model I do have
+                    to the site to demonstrate my ability to do so.
+                </p>
+            </div>
+            <div class="px-6 py-4 bg-gray-900 border-t border-gray-700 mt-auto flex items-center justify-between">
+                <a href="{% url 'GW2Predict:index' %}" class="bg-blue-600 text-white font-medium px-6 py-2 rounded-lg hover:bg-blue-500 transition-colors">
+                    More info about the project
+                </a>
+            </div>
+        </div>
+
+        <!-- Project Card 3: Tartan Identifier -->
+        <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden flex flex-col hover:shadow-2xl hover:border-gray-600 transition-all">
+            <div class="p-6 flex-grow">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-white">Tartan Identifier</h2>
+                    <span class="bg-purple-900 text-purple-200 text-xs font-semibold px-2.5 py-0.5 rounded border border-purple-700">Machine Learning &nbsp;•&nbsp; Work In Progress</span>
                 </div>
                 <p class="text-gray-300 leading-relaxed mb-4">
                     A machine learning model trained on a custom dataset of 10,000 images to identify 5,500+ registered Scottish tartans. Upload a photo to receive pattern predictions and direct links to the Scottish Tartan registry.

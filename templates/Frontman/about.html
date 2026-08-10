@@ -2,40 +2,64 @@
 {% load static %}
 
 {% block content %}
-<h1>About Isaac</h1>
-    <div class="clearfix">
-        <img src="{% static 'Isaac-2.JPG' %}"
-             class="img-fluid float-start me-4 mb-3"
-             style="max-width: 300px;"
-             alt="A selfie photo of Isaac smiling jovially in an elevator">
-        <a href="https://github.com/godfather76" target="_blank">My GitHub (Godfather76)</a>
-        <p>I am a Python programmer and data analyst based in San Diego, specializing in automation and data infrastructure.
-            My approach to work is straightforward: I look for the most cumbersome, manual process in an enterprise
-            environment and build a Python pipeline to replace it.
-            <br><br>
-            My background is a mix of military service and academic
-            research. During my time as a Fire Controlman on the USS Ronald Reagan, I worked with high-speed sensor and
-            weapon systems, which taught me the importance of reliability, which I apply to  building and maintaining
-            high-volume data pipelines today. Whether I am chunking multi-million row datasets with Pandas or building
-            backend database abstraction layers, I focus on system integrity and efficiency.
-            <br><br>
-            I spent several years as a substitute teacher and adjunct history professor, which taught me to value
-            structured problem-solving and ethical clarity. I eventually made a hard pivot into tech
-            after building automated tools to streamline administrative bottlenecks. I’ve since earned an MS in Data Science
-            (3.86 GPA), which allowed me to formalize my skills in machine learning and scalable architecture.
-            <br><br>
-            At Soft-Pak, I developed a conversion suite that reduced data conversion times from 30 hours to under two.
-            I am currently developing the Tartan Identifier portion of this website. I have gathered a large group of
-            pictures of tartan and am working to create the Machine Learning model and then train it.
-            I'm looking for roles where I can continue to build and maintain the tools that make complex data accessible
-            and usable.
-            <br><br>
-            When I'm not playing with data or writing Python code, I am the forever Dungeon Master for a weekly tabletop
-            roleplaying campaign, currently running Genefunk 2090. I have also spent the last two years steadily
-            learning Scots Gaelic—a passion sparked after joining a Renaissance Faire guild called Clan MacGowan and
-            diving into Scotland's rich culture and history (once you kilt up once, the rest is just given). Otherwise,
-            you can usually find me meal-prepping high-protein vegetarian dishes, practicing Tang Soo Do (a traditional
-            Korean martial art), pacing my home office with 20-pound dumbbells, or unwinding with video games.
-        </p>
+<div class="container my-5 shadow p-5 bg-dark text-light rounded">
+
+    <!-- Header -->
+    <header class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary mb-3">About Isaac</h1>
+        <p class="text-light mb-0">Python Programmer & Data Analyst | San Diego, CA</p>
+    </header>
+
+    <div class="row align-items-start">
+
+        <!-- Left Column: Photo & Links -->
+        <div class="col-md-4 col-lg-3 text-center mb-4 mb-md-0">
+            <img src="{% static 'Isaac-2.JPG' %}"
+                 class="img-fluid rounded shadow-lg mb-4 border border-secondary"
+                 alt="A selfie photo of Isaac smiling jovially in an elevator">
+
+            <a href="https://github.com/godfather76" target="_blank" class="btn btn-light text-dark fw-bold w-100 shadow-sm">
+                <i class="bi bi-github"></i> GitHub Profile
+            </a>
+        </div>
+
+        <!-- Right Column: Biography -->
+        <div class="col-md-8 col-lg-9 fs-5 text-light" style="line-height: 1.8;">
+
+            <p class="lead text-white fw-normal mb-4">
+                I am a Python programmer and data analyst based in San Diego, specializing in automation and data infrastructure.
+                My approach to work is straightforward: <span class="text-info">I look for the most cumbersome, manual process in an enterprise environment and build a Python pipeline to replace it.</span>
+            </p>
+
+            <h3 class="h5 text-white border-bottom border-secondary pb-2 mt-5">Background & Education</h3>
+            <p>
+                My background is a mix of military service and academic research. During my time as a Fire Controlman on the USS Ronald Reagan, I worked with high-speed sensor and weapon systems, which taught me the importance of reliability—a principle I apply to building and maintaining high-volume data pipelines today. Whether I am chunking multi-million row datasets with Pandas or building backend database abstraction layers, I focus on system integrity and efficiency.
+            </p>
+            <p>
+                I spent several years as a substitute teacher and adjunct history professor, which taught me to value structured problem-solving and ethical clarity. I eventually made a hard pivot into tech after building automated tools to streamline administrative bottlenecks. I’ve since earned an MS in Data Science (3.86 GPA), which allowed me to formalize my skills in machine learning and scalable architecture.
+            </p>
+
+            <h3 class="h5 text-white border-bottom border-secondary pb-2 mt-5">Recent Projects</h3>
+
+            <!-- Achievement Callout -->
+            <div class="alert alert-dark border-primary bg-dark shadow-sm text-light my-4">
+                <strong><i class="bi bi-lightning-charge-fill text-warning"></i> Soft-Pak Achievement:</strong>
+                Developed a conversion suite that reduced data conversion times from <span class="text-white fw-bold">30 hours to under two</span>.
+            </div>
+
+            <p>
+                I am currently developing the Tartan Identifier portion of this website. I have gathered a large group of pictures of tartan and am working to create the Machine Learning model and then train it. I'm looking for roles where I can continue to build and maintain the tools that make complex data accessible and usable.
+            </p>
+
+            <h3 class="h5 text-white border-bottom border-secondary pb-2 mt-5">Outside the Code</h3>
+            <p>
+                When I'm not playing with data or writing Python code, I am the forever Dungeon Master for a weekly tabletop roleplaying campaign, currently running <em>Genefunk 2090</em>. I have also spent the last two years steadily learning Scots Gaelic—a passion sparked after joining a Renaissance Faire guild called Clan MacGowan and diving into Scotland's rich culture and history (once you kilt up once, the rest is just given).
+            </p>
+            <p>
+                Otherwise, you can usually find me meal-prepping high-protein vegetarian dishes, practicing Tang Soo Do (a traditional Korean martial art), pacing my home office with 20-pound dumbbells, or unwinding with video games.
+            </p>
+
+        </div>
     </div>
+</div>
 {% endblock %}

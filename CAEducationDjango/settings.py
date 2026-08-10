@@ -34,7 +34,8 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'Frontman',
     'CalEd',
-    'EyeTartan'
+    'EyeTartan',
+    'GW2Predict.apps.Gw2PredictConfig'
 ]
 
 MEDIA_ROOT = env("MEDIA_ROOT", default=BASE_DIR / "media")

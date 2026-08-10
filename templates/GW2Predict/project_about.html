@@ -1,0 +1,91 @@
+{%  extends 'GW2Predict/base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="container my-5 shadow p-5 bg-dark text-light rounded">
+
+    <!-- Header Section -->
+    <header class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary mb-3">GW2 Market Analytics</h1>
+        <p class="text-light mb-4">Automating Insights from the Guild Wars 2 Trading Post</p>
+
+        <!-- Quick Links -->
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="https://github.com/godfather76/GW2TradingPostProject" target="_blank" class="btn btn-light text-dark fw-bold">
+                <i class="bi bi-github"></i> GitHub Repository
+            </a>
+            <a href="#" class="btn btn-outline-primary">
+                View Dashboard
+            </a>
+            <a href="https://wiki.guildwars2.com/wiki/API:Main" target="_blank" class="btn btn-outline-light">
+                ArenaNet API Docs
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10 fs-5 text-light" style="line-height: 1.8;">
+
+            <p class="lead text-white fw-normal mb-5">
+                The Guild Wars 2 Trading Post is a massive, player-driven economy with millions of transactions occurring daily. For a data engineer, it is a perfect playground. My goal with this project was to take a cumbersome, manual process—identifying profitable market flips and crafting margins—and build a fully automated Python pipeline to do the heavy lifting.
+            </p>
+
+            <h3 class="h4 text-white border-bottom border-secondary pb-2 mt-5">The Challenge: A Living Economy</h3>
+            <p>
+                Unlike static datasets, the GW2 Trading Post is a living ecosystem. Prices fluctuate based on game updates, player population spikes, and market manipulation. Navigating this in-game requires clicking through hundreds of items, checking buy/sell spreads, and manually calculating whether an item is worth crafting or flipping.
+            </p>
+            <p>
+                I knew I could apply the same data infrastructure principles I use for enterprise environments to this virtual economy. The official ArenaNet REST API provides real-time access to commerce data, but the challenge lies in the volume: there are tens of thousands of items, requiring careful rate-limiting, batch processing, and efficient data storage.
+            </p>
+
+            <h3 class="h4 text-white border-bottom border-secondary pb-2 mt-5">The Data Pipeline</h3>
+            <p>
+                To handle the data ingestion, I built a Python-based extraction pipeline. Instead of hitting the API item-by-item, the script utilizes the bulk endpoints, chunking the requests to respect ArenaNet's rate limits while ensuring the data remains as fresh as possible.
+            </p>
+            <p>
+                Once the raw JSON data is pulled, I use <strong>Pandas</strong> to clean, transform, and calculate derived metrics—such as the percentage return on investment (ROI) after the game's 15% Trading Post tax. The cleaned data is then loaded into a <strong>PostgreSQL</strong> database, creating a robust, queryable backend that powers the frontend visualizations.
+            </p>
+
+            <!-- Key Features Dark Mode Card -->
+            <div class="card bg-dark border-secondary shadow-sm mt-5 mb-4">
+                <div class="card-header bg-primary text-white fw-bold">
+                    Core Dashboard Features
+                </div>
+                <div class="card-body pb-0">
+                    <ul class="mb-3 text-light">
+                        <li class="mb-3">
+                            <strong class="text-info">Arbitrage Detection:</strong> Automatically flags items with high buy-order to sell-listing spreads, calculating exact profit margins post-tax.
+                        </li>
+                        <li class="mb-3">
+                            <strong class="text-info">Volume Velocity:</strong> It doesn't matter if an item has a high margin if it never sells. The pipeline tracks supply and demand volumes to ensure recommended items are highly liquid.
+                        </li>
+                        <li class="mb-2">
+                            <strong class="text-info">Crafting Profitability:</strong> Recursively checks the price of raw materials against the finished product to identify items that are currently cheaper to craft than to buy.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="h4 text-white border-bottom border-secondary pb-2 mt-5">Next Steps: Predictive Modeling</h3>
+
+            <!-- Achievement / Forward Looking Callout -->
+            <div class="alert alert-dark border-primary bg-dark shadow-sm text-light my-4">
+                <strong><i class="bi bi-graph-up-arrow text-warning"></i> Looking Ahead:</strong>
+                The current pipeline acts as a snapshot of the present. The next evolution of this project involves training a <span class="text-white fw-bold">Machine Learning model</span> on historical price data to predict market trends before they happen.
+            </div>
+
+            <p>
+                By applying time-series forecasting to historical item prices, the goal is to predict how seasonal events, expansion releases, or patch notes will impact material costs. It's an ongoing exercise in scalable architecture and system integrity, ensuring that the backend can handle the continuous stream of economic data without bottlenecking.
+            </p>
+
+            <p class="mt-5 text-center fw-bold text-white pb-4">
+                Built with Python, Django, Pandas, and PostgreSQL.
+            </p>
+
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

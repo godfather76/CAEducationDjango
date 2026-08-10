@@ -58,6 +58,11 @@
                      {% if request.resolver_match.url_name == 'Frontman:index' %}aria-current="page"{% endif %}
                      href="{% url 'Frontman:index' %}">Portfolio<br>Home</a>
                 </li>
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active fw-bold{% endif %}"
+                     {% if request.resolver_match.url_name == 'Frontman:about' %}aria-current="page"{% endif %}
+                     href="{% url 'Frontman:about' %}">About<br>Isaac</a>
+                </li>
                 <div class="vr d-none d-lg-block mx-2" style="height: 70px;"></div>
                 <li class="nav-item">
                   <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active fw-bold{% endif %}"
@@ -75,11 +80,20 @@
                      {% if request.resolver_match.url_name == 'notebooks' %}aria-current="page"{% endif %}
                      href="{% url 'CalEd:notebooks' %}">CalEd Jupyter<br>Notebooks</a>
                 </li>
-
                 <li class="nav-item">
                   <a class="nav-link {% if request.resolver_match.url_name == 'links' %}active fw-bold{% endif %}"
                      {% if request.resolver_match.url_name == 'links' %}aria-current="page"{% endif %}
                      href="{% url 'CalEd:links' %}">Data<br>Links</a>
+                </li>
+                <div class="vr d-none d-lg-block mx-2" style="height: 70px;"></div>
+                <li class="nav-item">
+                  <a class="nav-link"
+                     href="{% url 'GW2Predict:index' %}">Guild Wars 2<br>Predictor</a>
+                </li>
+                <div class="vr d-none d-lg-block mx-2" style="height: 70px;"></div>
+                <li class="nav-item">
+                  <a class="nav-link"
+                     href="{% url 'EyeTartan:index' %}">EyeTartan<br>Home</a>
                 </li>
               </ul>
             </div>

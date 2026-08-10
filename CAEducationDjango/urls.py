@@ -6,5 +6,5 @@ urlpatterns = [
     path('', include('Frontman.urls')),
     path('CalEd/', include('CalEd.urls')),
     path('EyeTartan/', include('EyeTartan.urls')),
-
+    path('GW2Predict/', include('GW2Predict.urls')),
 ]
