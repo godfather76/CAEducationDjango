@@ -53,7 +53,7 @@ def predict(request):
         'Accept': 'application/json, text/javascript, */*; q=0.01',
         'Accept-Language': 'en-US,en;q=0.9',
         'Referer': 'https://www.gw2tp.com/',
-        'X-Requested-With': 'XMLHttpRequest',
+        'X-Requested-With': 'XMLHttpRequest'
     }
 
     if cached_data:
