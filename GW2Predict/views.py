@@ -10,6 +10,9 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
 import joblib
+import urllib.request
+import json
+
 
 
 def determine_denominations(copper):
@@ -52,22 +55,18 @@ def predict(request):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/javascript, */*; q=0.01',
         'Accept-Language': 'en-US,en;q=0.9',
-        'Referer': 'https://www.gw2tp.com/',
-        'X-Requested-With': 'XMLHttpRequest'
     }
 
     if cached_data:
-        print('Using cached data')
         data = cached_data
     else:
-        response = requests.get(f"https://www.gw2tp.com/api/trends-ohlc?id={item_id}&range=all&mode=line",
-                                headers=headers,
-                                timeout=5)
-        if response.status_code == 200:
-            print('Got new data. Creating new cache')
-            data = response.json()
-            cache.set(cache_key, data, timeout=60)
-        else:
+        url = f"https://www.gw2tp.com/api/trends-ohlc?id={item_id}&range=all&mode=line"
+        req = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=10) as response:
+                data = json.loads(response.read().decode('utf-8'))
+        except Exception as e:
+            print(f'Socket connection failed: {e}')
             return JsonResponse({'Error retrieving data from gw2tp.com'}, status=500)
 
     tables = [
@@ -100,17 +99,16 @@ def predict(request):
     api_cache_key = f'gw2api_price_{item_id}'
     api_cached_data = cache.get(api_cache_key)
     if api_cached_data:
-        print('Using cached api price data')
         api_data = api_cached_data
     else:
-        gw2api_response = requests.get(f'https://api.guildwars2.com/v2/commerce/prices/{item_id}',
-                                       headers=headers,
-                                       timeout=5)
-        if gw2api_response.status_code == 200:
-            print('Got new api price data. Creating new cache')
-            api_data = gw2api_response.json()
-        else:
-            return JsonResponse({'Error retrieving current price data from GW2 API'}, status=500)
+        api_url = f'https://api.guildwars2.com/v2/commerce/prices/{item_id}'
+        api_req = urllib.request.Request(api_url, headers=headers)
+        try:
+            with urllib.request.urlopen(api_req, timeout=10) as response:
+                api_data = json.loads(response.read().decode('utf-8'))
+        except Exception as e:
+            print(f'Socket connection failed: {e}')
+            return JsonResponse({'Error retrieving data from GW2 API'}, status=500)
 
     for f in features.keys():
         features[f] = determine_denominations(features[f])
