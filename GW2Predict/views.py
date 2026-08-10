@@ -49,7 +49,7 @@ def predict(request):
     cache_key = f'gw2_price_{item_id}'
     cached_data = cache.get(cache_key)
     headers = {
-        'User-Agent': 'GW2Predict - isaac.godsey@gmail.com'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
     }
 
     if cached_data:
