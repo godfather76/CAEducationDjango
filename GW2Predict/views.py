@@ -49,7 +49,11 @@ def predict(request):
     cache_key = f'gw2_price_{item_id}'
     cached_data = cache.get(cache_key)
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': 'https://www.gw2tp.com/',
+        'X-Requested-With': 'XMLHttpRequest',
     }
 
     if cached_data:
