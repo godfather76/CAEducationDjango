@@ -18,3 +18,18 @@ class AllItems(models.Model):
     description = models.TextField(max_length=200, null=True)
     upgrades_from = models.TextField(max_length=100, null=True)
     upgrades_into = models.TextField(max_length=100, null=True)
+
+
+class PredictData(models.Model):
+    item_id = models.IntegerField(primary_key=True)
+    time = models.IntegerField(null=True)
+    buy_open = models.IntegerField()
+    buy_high = models.IntegerField()
+    buy_low = models.IntegerField()
+    buy_close = models.IntegerField()
+    sell_open = models.IntegerField()
+    sell_high = models.IntegerField()
+    sell_low = models.IntegerField()
+    sell_close = models.IntegerField()
+    buy_sma = models.FloatField()
+    sell_sma = models.FloatField()
