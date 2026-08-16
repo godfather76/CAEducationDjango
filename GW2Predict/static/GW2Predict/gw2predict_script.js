@@ -74,7 +74,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     const features = data.features;
                     predict_text.innerHTML = features['item_name'] + ' (ID# ' + features['item_id'] + ')<br>' +
                     'Current Buy Price: ' + features['current_buy_price'] + '<br>' +
-                    'Current Buy Price: ' + features['current_buy_price'] + '<br>' +
                     'Current sell price: ' + features['current_sell_price'] + '<br>' +
                     '3 day predicted price (' + features['3d_date'] + '): ' + features['3d'] + '<br>' +
                     '7 day predicted price (' + features['7d_date'] + '): ' + features['7d'] + '<br>' +
