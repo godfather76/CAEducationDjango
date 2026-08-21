@@ -66,7 +66,7 @@
 
                 <li class="nav-item">
                   <a class="nav-link {% if request.resolver_match.url_name == 'notebooks' %}active fw-bold{% endif %}"
-                     {% if request.resolver_match.url_name == 'notebooks' %}aria-current="page"{% endif %}
+                     {% if request.resolver_match.url_name == 'GW2Predict:notebooks' %}aria-current="page"{% endif %}
                      href="{% url 'GW2Predict:notebooks' %}">GW2 Jupyter<br>Notebooks</a>
                 </li>
 
