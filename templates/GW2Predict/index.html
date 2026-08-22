@@ -6,8 +6,8 @@
     All of these items are Crafting Materials and Trophies that are available for sale and purchase on the Black Lion
     Trading Post.<br>
     When you click predict, it will show today's high buy price and a  3 day, 7 day, and 30 day price prediction for
-    the buy high price. The model currently works only slightly worse than the naive baseline, with a Mean Absolute
-    Error of around .5 gold for the 30 day forecast (which works a little better than the 3 and 7 day forecasts).</p>
+    the buy high price.</p>
+    <p>If the item is less than 1 Gold, it will use the "penny" model, otherwise it will use the "luxury" model.</p>
     <div class="d-flex align-items-start" style="max-width: 420px; gap: 10px;">
   <!-- Dropdown Wrapper -->
   <div class="dropdown flex-grow-1">
@@ -31,7 +31,6 @@
 
   <!-- Predict Button -->
   <button id="predict-button" class="btn btn-primary">Predict!</button>
-
 </div>
 
     <p id="predict-text"></p>

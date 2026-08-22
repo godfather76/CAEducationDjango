@@ -8,3 +8,4 @@ __pycache__/
 .AppleDouble
 .LSOverride
 .env
+/GW2Predict/models/K15_old/

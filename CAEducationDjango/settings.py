@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     'Frontman',
     'CalEd',
     'EyeTartan',
-    # 'GW2Predict.apps.Gw2PredictConfig'
+    'GW2Predict.apps.GW2PredictConfig'
 ]
 
 MEDIA_ROOT = env("MEDIA_ROOT", default=BASE_DIR / "media")
