@@ -68,6 +68,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 .then(response => {
                     clearTimeout(timeoutId); // We were successful, end the timeout watch
                     if (!response.ok) throw new Error('Network response was not ok.');
+                    predict_text.innerHTML = 'There was a problem fetching this item. Try another item.';
                     return response.json();
                 })
                 .then(data => {

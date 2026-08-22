@@ -220,7 +220,25 @@ def gather_and_preprocess(item_id):
 
 def predict(request):
     item_name = request.GET.get('item_name')
-    item_id = AllItems.objects.get(name=item_name).id
+    try:
+        item_id = (
+            AllItems.objects
+            .filter(
+                (Q(type='CraftingMaterial') |
+                 Q(type='Trophy')) &
+                (~Q(flags__contains='AccountBound') &
+                 ~Q(flags__contains='SoulbindOnAcquire'))
+            )).get(name=item_name).id
+    except AllItems.MultipleObjectsReturned:
+        # IF there's more than one, just take the first one.
+        item_id = (
+            AllItems.objects
+            .filter(
+                (Q(type='CraftingMaterial') |
+                 Q(type='Trophy')) &
+                (~Q(flags__contains='AccountBound') &
+                 ~Q(flags__contains='SoulbindOnAcquire'))
+            )).all()[0].id
 
     x_dict, res_dict, model_branch = gather_and_preprocess(item_id)
     input_id = np.array([item_id])
