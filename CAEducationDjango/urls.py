@@ -7,4 +7,5 @@ urlpatterns = [
     path('CalEd/', include('CalEd.urls')),
     path('EyeTartan/', include('EyeTartan.urls')),
     path('GW2Predict/', include('GW2Predict.urls')),
+    path('GaelicScotland/', include('GaelicScotland.urls')),
 ]
