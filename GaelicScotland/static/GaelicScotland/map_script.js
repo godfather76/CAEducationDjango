@@ -34,15 +34,16 @@ document.addEventListener("DOMContentLoaded", function() {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
         }).addTo(map);
-        // Helper to scale raw counts to pixel radius (adjust scale multiplier as needed)
+        /* Helper to scale raw counts to pixel radius (adjust scale multiplier as needed)
         function getBubbleRadius(val) {
             if (!val || val <= 0) return 0;
             // Square root scaling prevents high numbers from blowing out the map
             return Math.sqrt(val) * 0.8;
         }
+        */
 
         var geojsonLayer;
-        var bubbleLayer;
+        // var bubbleLayer;
 
         function getSpeakersColor(speakers) {
             if (speakers === null || speakers === undefined) return '#e0e0e0'; // Make missing data gray
@@ -79,9 +80,11 @@ document.addEventListener("DOMContentLoaded", function() {
                         map.removeLayer(geojsonLayer);
                     }
 
+                    /*
                     if (bubbleLayer) {
                         map.removeLayer(bubbleLayer);
                     }
+                    */
 
                     // 4. Draw our spatial layout features
                     geojsonLayer = L.geoJSON(data, {
@@ -137,6 +140,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         }
                     }).addTo(map);
 
+                    /*
                     bubbleLayer = L.layerGroup().addTo(map);
 
                     data.features.forEach(function(feature) {
@@ -175,6 +179,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             bubble.addTo(bubbleLayer);
                         }
                     });
+                    */
                 })
                 .catch(error => {
                     clearTimeout(timeoutId);
@@ -215,7 +220,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     from + (to ? '&ndash;' + to + '%' : '+%') + '<br>';
             }
 
-            // 2. Label and visual key for the proportional bubbles overlay
+            /* 2. Label and visual key for the proportional bubbles overlay
             div.innerHTML += '<hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">';
             div.innerHTML += '<strong style="display:block; margin-bottom:6px;">Trans Population</strong>';
 
@@ -227,6 +232,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 '<div style="display: flex; align-items: center;">' +
                 '<span style="background: #ff5500; border: 1px solid #ffffff; width: 16px; height: 16px; border-radius: 50%; opacity: 0.65; display: inline-block; margin-right: 9px; margin-left: 1px;"></span> Higher' +
                 '</div>';
+            */
 
             return div;
         };
