@@ -46,17 +46,16 @@ document.addEventListener("DOMContentLoaded", function() {
         // var bubbleLayer;
 
         function getSpeakersColor(speakers) {
-            if (speakers === null || speakers === undefined) return '#e0e0e0'; // Make missing data gray
-            return speakers > 9 ? '#04234b' : // Deepest Navy
-                speakers > 8 ? '#0a3a69' : // Dark Navy Blue
-                    speakers > 7 ? '#145082' : // Dark Blue
-                        speakers > 6 ? '#22659b' : // Strong Blue
-                            speakers > 5 ? '#317bb4' : // Medium Dark Blue
-                                speakers > 4 ? '#478ebf' : // Medium Blue
-                                    speakers > 3 ? '#63a0ca' : // Muted Blue
-                                        speakers > 2 ? '#7eb1d4' : // Soft Blue
-                                            speakers > 1 ? '#9ac3df' : // Light Blue
-                                                '#b5d4e9';  // Pale Blue (Distinctly blue, not white)
+    if (speakers === null || speakers === undefined) return '#474646'; // Missing data gray
+    return speakers > 20 ? '#021021' : // Deepest Navy
+        speakers > 15 ? '#04234b' : // Deep Navy
+            speakers > 10 ? '#0a3a69' : // Dark Navy Blue
+                speakers > 7 ? '#1c5d99' : // Strong Blue
+                    speakers > 5 ? '#317bb4' : // Medium Blue
+                        speakers > 3 ? '#63a0ca' : // Muted Blue
+                            speakers > 1.5 ? '#9ac3df' : // Soft Light Blue
+                                speakers > 0.5 ? '#cfe3f3' : // Pale Blue
+                                    '#f0f6fa';  // Near White / Very Light Tint
         }
 
         // 3. Consolidated operational data loading container block
@@ -202,23 +201,25 @@ document.addEventListener("DOMContentLoaded", function() {
         var legend = L.control({position: 'topright'});
 
         legend.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'info legend');
+        var div = L.DomUtil.create('div', 'info legend');
 
-            // 1. Label for the base choropleth map
-            div.innerHTML += '<strong style="display:block; margin-bottom:6px;">Gaelic Speakers</strong>';
+        // 1. Label for the base choropleth map
+        div.innerHTML += '<strong style="display:block; margin-bottom:6px;">Gaelic Speakers</strong>';
 
-            var grades = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        var grades = [0, 0.5, 1.5, 3, 5, 7, 10, 15, 20];
 
-            // Loop through intervals and generate a label with a colored square for each
-            for (var i = 0; i < grades.length; i++) {
-                var from = grades[i];
-                var to = grades[i + 1];
+        // Loop through intervals and generate a label with a colored square for each
+        for (var i = 0; i < grades.length; i++) {
+            var from = grades[i];
+            var to = grades[i + 1];
 
-                // Call the updated getSpeakersColor function
-                div.innerHTML +=
-                    '<i style="background:' + getSpeakersColor(from + 1) + '"></i> ' +
-                    from + (to ? '&ndash;' + to + '%' : '+%') + '<br>';
-            }
+            // Evaluate a representative value inside the bucket for the color lookup
+            var sampleVal = to !== undefined ? (from + to) / 2 : from + 1;
+
+            div.innerHTML +=
+                '<i style="background:' + getSpeakersColor(sampleVal) + '"></i> ' +
+                from + (to ? '&ndash;' + to + '%' : '+%') + '<br>';
+        }
 
             /* 2. Label and visual key for the proportional bubbles overlay
             div.innerHTML += '<hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">';
