@@ -2,33 +2,91 @@
 {% load static %}
 
 {% block content %}
-<h3>Agentic</h3>
-    <input type="text" id="userInput" placeholder="Type here...">
-    <button onclick="sendToOllama()">Send</button>
-    <p id="responseBox"></p>
+{#<h3>Agentic</h3>#}
+{#    <input type="text" id="userInput" placeholder="Type here...">#}
+{#    <button onclick="sendToOllama()">Send</button>#}
+{#    <p id="responseBox"></p>#}
 
-    <script>
-        async function sendToOllama() {
-            const input = document.getElementById('userInput').value;
-            document.getElementById('responseBox').innerText = "Loading...";
+{#    <script>#}
+{#        async function sendToOllama() {#}
+{#            const input = document.getElementById('userInput').value;#}
+{#            document.getElementById('responseBox').innerText = "Loading...";#}
+{##}
+{#            try {#}
+{#                const response = await fetch('http://127.0.0.1:11434/api/generate', {#}
+{#                    method: 'POST',#}
+{#                    headers: { 'Content-Type': 'application/json' },#}
+{#                    body: JSON.stringify({#}
+{#                        model: 'llava', // Must match a model you have pulled#}
+{#                        prompt: input,#}
+{#                        stream: false#}
+{#                    })#}
+{#                });#}
+{##}
+{#                const data = await response.json();#}
+{#                document.getElementById('responseBox').innerText = data.response;#}
+{##}
+{#            } catch (error) {#}
+{#                document.getElementById('responseBox').innerText = "Connection failed. Is Ollama configured and running a model?";#}
+{#            }#}
+{#        }#}
+{#    </script>#}
+    <h3>Agentic Vision</h3>
+    <p>Important note: For this webapp to work, you must be running llava on a local Ollama instance on port 11434.
+        It will work much more quickly if you have a GPU.<br><br>
+    Click the button to select an image. Click Describe photo and the LLM will *try* to describe what is in the photo.<br>
+    (Note: AIs make mistakes, and this one is silly sometimes. This is the beginning stages of me playing around with
+    deployed LLM models)</p>
+<input type="file" id="imageInput" accept="image/png, image/jpeg">
+<button onclick="sendToOllama()">Describe Photo</button>
+<p id="responseBox"></p>
+
+<script>
+    async function sendToOllama() {
+        const fileInput = document.getElementById('imageInput');
+        const responseBox = document.getElementById('responseBox');
+
+        if (fileInput.files.length === 0) {
+            responseBox.innerText = "Please select an image first.";
+            return;
+        }
+
+        responseBox.innerText = "Loading image...";
+
+        // 1. Read the image file using the browser's FileReader API
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async function(event) {
+            // event.target.result looks like: "data:image/jpeg;base64,/9j/4AAQSkZJR..."
+            // Ollama only wants the raw Base64 string, so we split off the prefix.
+            const base64Image = event.target.result.split(',')[1];
+
+            responseBox.innerText = "Asking Llava to describe...";
 
             try {
+                // 2. Send the Base64 string in the "images" array
                 const response = await fetch('http://127.0.0.1:11434/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        model: 'qwen2.5:7b', // Must match a model you have pulled
-                        prompt: input,
+                        model: 'llava',
+                        prompt: 'Describe this photo.',
+                        images: [base64Image], // Must be an array
                         stream: false
                     })
                 });
 
                 const data = await response.json();
-                document.getElementById('responseBox').innerText = data.response;
+                responseBox.innerText = data.response;
 
             } catch (error) {
-                document.getElementById('responseBox').innerText = "Connection failed. Is Ollama configured and running a model?";
+                responseBox.innerText = "Connection failed. Is Ollama configured and running llava?";
             }
-        }
-    </script>
+        };
+
+        // This triggers the onload event above once the file is fully read
+        reader.readAsDataURL(file);
+    }
+</script>
 {% endblock %}
