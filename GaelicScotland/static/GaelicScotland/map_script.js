@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", function() {
             maxBounds: scotlandBounds,
             maxBoundsViscosity: 1.0,
             minZoom: 6
+            // preferCanvas: true
         }).setView([56.4907, -4.2026], 7);
 
         setTimeout(function () {

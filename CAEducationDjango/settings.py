@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     'CalEd',
     'EyeTartan',
     'GW2Predict.apps.GW2PredictConfig',
-    'GaelicScotland'
+    'GaelicScotland',
+    'Agentic'
 ]
 
 MEDIA_ROOT = env("MEDIA_ROOT", default=BASE_DIR / "media")
