@@ -30,17 +30,15 @@ document.addEventListener("DOMContentLoaded", function() {
         }, 100);
 
         // 2. Load geographic underlying base tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
+        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        //     maxZoom: 19,
+        //     attribution: '© OpenStreetMap'
+        // }).addTo(map);
+        L.tileLayer('https://{s}://{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors &copy; <a href="https://carto.com">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
         }).addTo(map);
-        /* Helper to scale raw counts to pixel radius (adjust scale multiplier as needed)
-        function getBubbleRadius(val) {
-            if (!val || val <= 0) return 0;
-            // Square root scaling prevents high numbers from blowing out the map
-            return Math.sqrt(val) * 0.8;
-        }
-        */
 
         var geojsonLayer;
         // var bubbleLayer;
