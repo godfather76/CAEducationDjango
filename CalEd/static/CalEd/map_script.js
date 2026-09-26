@@ -27,12 +27,16 @@ document.addEventListener("DOMContentLoaded", function() {
             map.invalidateSize();
         }, 100);
 
-        // 2. Load geographic underlying base tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
+        // // 2. Load geographic underlying base tile layer
+        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        //     maxZoom: 19,
+        //     attribution: '© OpenStreetMap'
+        // }).addTo(map);
+        L.tileLayer('https://{s}://{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors &copy; <a href="https://carto.com">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
         }).addTo(map);
-
         // Bind references to DOM control elements
         var boundaryDropdown = document.getElementById('boundary-dropdown')
         var yearDropdown = document.getElementById('year-dropdown');
