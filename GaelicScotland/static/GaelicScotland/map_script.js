@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const timeoutId = setTimeout(() => {
                 controller.abort();
                 console.warn("Request timed out! Forcing abort...");
-            }, 15000);
+            }, 45000);
 
             fetch(apiUrl, {signal: controller.signal})
                 .then(response => {
