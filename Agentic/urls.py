@@ -6,5 +6,6 @@ app_name = 'Agentic'
 
 urlpatterns = [
     path('', views.index, name='index'),
-    # path('about', views.about, name='about'),
+    path('index/', views.index, name='index'),
+    path('chat/', views.chat_with_character, name='chat'),
 ]
